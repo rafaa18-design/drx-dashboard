@@ -1,0 +1,100 @@
+/* ── Fontes — devem vir ANTES do @tailwind ───────────────────── */
+@import url("https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Variáveis DRX · Tema Azul ───────────────────────────────── */
+:root {
+  --bg:          #EEF3FA;
+  --surface:     #FFFFFF;
+  --ink:         #0F1C2E;
+  --ink-2:       #2C3E55;
+  --ink-3:       #5B7A99;
+  --ink-4:       #94A8BF;
+  --line:        #C8D9EC;
+  --line-soft:   #DDE8F4;
+  --accent:      #1A56DB;
+  --accent-soft: rgba(26,86,219,0.08);
+  --accent-line: rgba(26,86,219,0.20);
+  --warn:        #F59E0B;
+  --ok:          #059669;
+
+  /* Sidebar */
+  --sidebar-bg:      #0F1C2E;
+  --sidebar-surface: #162338;
+  --sidebar-border:  rgba(255,255,255,0.07);
+  --sidebar-text:    rgba(255,255,255,0.55);
+  --sidebar-active:  rgba(26,86,219,0.18);
+}
+
+/* ── Base ────────────────────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "DM Sans", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--line); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+
+/* ── Tipografia DRX ──────────────────────────────────────────── */
+.font-display { font-family: "Clash Display", sans-serif; }
+.font-mono    { font-family: "JetBrains Mono", monospace; }
+
+.label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-4);
+}
+
+.label-accent {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+
+/* ── Badges de nível ─────────────────────────────────────────── */
+.badge-hot          { background: rgba(239,68,68,0.10);   color: #DC2626; }
+.badge-warm         { background: rgba(245,158,11,0.10);  color: #D97706; }
+.badge-cold         { background: rgba(26,86,219,0.10);   color: #1A56DB; }
+.badge-disqualified { background: rgba(148,168,191,0.15); color: #5B7A99; }
+.badge-auto         { background: rgba(5,150,105,0.10);   color: #059669; }
+
+/* ── Animações ───────────────────────────────────────────────── */
+@keyframes drx-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes drx-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse  { animation: drx-pulse 2.4s ease-in-out infinite; }
+.animate-fadeIn { animation: drx-fadeIn 0.3s ease forwards; }
+
+/* ── Transições ──────────────────────────────────────────────── */
+a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
