@@ -1,4 +1,4 @@
-import type { Appointment } from "@/types";
+import type { Appointment, Lead, Conversation } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -45,9 +45,9 @@ export const api = {
   // Leads
   getLeads: (params?: Record<string, string>) => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-    return request<{ items: unknown[]; total: number }>(`/api/leads${qs}`);
+    return request<{ items: Lead[]; total: number }>(`/api/leads${qs}`);
   },
-  getLead: (id: string) => request<unknown>(`/api/leads/${id}`),
+  getLead: (id: string) => request<Lead>(`/api/leads/${id}`),
   updateLead: (id: string, body: unknown) =>
     request(`/api/leads/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   toggleAI: (id: string) =>
@@ -66,7 +66,7 @@ export const api = {
   // Conversations
   getConversations: (status?: string) => {
     const qs = status ? `?status=${status}` : "";
-    return request<{ items: unknown[]; total: number }>(`/api/conversations${qs}`);
+    return request<{ items: Conversation[]; total: number }>(`/api/conversations${qs}`);
   },
   replyConversation: (id: string, message: string) =>
     request(`/api/conversations/${id}/reply`, { method: "POST", body: JSON.stringify({ message }) }),
