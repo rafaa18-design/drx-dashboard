@@ -30,7 +30,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AppointmentsPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{ items: Appointment[]; total: number }>({
     queryKey: ["appointments"],
     queryFn: () => api.getAppointments(),
   });
@@ -53,7 +53,7 @@ export default function AppointmentsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data?.items.map((appt: Appointment) => (
+            {data?.items.map((appt) => (
               <tr key={appt.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <p className="font-medium text-gray-900">{appt.lead_name ?? "—"}</p>
