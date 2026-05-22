@@ -1,3 +1,5 @@
+import type { Appointment } from "@/types";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 function getToken() {
@@ -56,7 +58,7 @@ export const api = {
   // Appointments
   getAppointments: (params?: Record<string, string>) => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-    return request<{ items: unknown[]; total: number }>(`/api/appointments${qs}`);
+    return request<{ items: Appointment[]; total: number }>(`/api/appointments${qs}`);
   },
   getAvailability: (date: string, duration = 60) =>
     request<{ available_slots: string[] }>(`/api/appointments/calendar/availability?date=${date}&duration=${duration}`),
