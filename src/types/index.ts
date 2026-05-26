@@ -13,8 +13,26 @@ export interface Lead {
   ai_active: boolean;
   source: string;
   assigned_to: string | null;
+  follow_up_count: number;
+  follow_up_last_sent_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface FollowUpRow {
+  lead_id: string;
+  lead_name: string | null;
+  lead_phone: string;
+  qualification_score: number;
+  qualification_level: string | null;
+  commercial_status: string;
+  follow_up_count: number;
+  follow_up_last_sent_at: string | null;
+  next_fu_number: number;
+  next_fu_message: string;
+  days_since_meeting: number;
+  eligible: boolean;
+  last_appointment_at: string | null;
 }
 
 export interface Conversation {

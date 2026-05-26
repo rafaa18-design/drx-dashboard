@@ -1,4 +1,4 @@
-import type { Appointment, Lead, Conversation } from "@/types";
+import type { Appointment, Lead, Conversation, FollowUpRow } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -70,6 +70,13 @@ export const api = {
   },
   replyConversation: (id: string, message: string) =>
     request(`/api/conversations/${id}/reply`, { method: "POST", body: JSON.stringify({ message }) }),
+
+  // Follow-up
+  getFollowUps: () => request<{ items: FollowUpRow[]; total: number }>("/api/follow-up"),
+  sendFollowUp: (leadId: string) =>
+    request(`/api/follow-up/${leadId}/send`, { method: "POST" }),
+  markFollowUpResponded: (leadId: string) =>
+    request(`/api/follow-up/${leadId}/responded`, { method: "POST" }),
 
   // Dashboard
   getKPIs: () => request<Record<string, number>>("/api/dashboard/kpis"),

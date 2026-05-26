@@ -10,6 +10,7 @@ const navItems = [
   { href: "/leads",         label: "Leads",          code: "03" },
   { href: "/conversations", label: "Atendimento",    code: "04" },
   { href: "/appointments",  label: "Agendamentos",   code: "05" },
+  { href: "/follow-up",    label: "Follow-up",      code: "06" },
 ];
 
 function getUsername(): string {
