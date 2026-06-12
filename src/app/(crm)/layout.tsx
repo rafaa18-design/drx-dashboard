@@ -193,36 +193,6 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       {/* ── Conteúdo principal ──────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
 
-        {/* Topbar */}
-        <header
-          className="flex items-center justify-between px-8 py-3.5 flex-shrink-0"
-          style={{
-            background: "rgba(238,243,250,0.92)",
-            backdropFilter: "blur(16px)",
-            borderBottom: "1px solid var(--line-soft)",
-            position: "sticky", top: 0, zIndex: 40,
-          }}
-        >
-          <div />
-          <div className="flex items-center gap-4">
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "5px 12px", borderRadius: 8,
-              background: "var(--surface)",
-              border: "1px solid var(--line)",
-            }}>
-              <div style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: "var(--ok)",
-                boxShadow: "0 0 0 3px rgba(5,150,105,0.2)",
-              }} />
-              <span className="font-mono" style={{ fontSize: 10, color: "var(--ink-3)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                {username}
-              </span>
-            </div>
-          </div>
-        </header>
-
         {/* Página */}
         <main className="flex-1 px-8 py-8 animate-fadeIn overflow-y-auto">
           {children}
