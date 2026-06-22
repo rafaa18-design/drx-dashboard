@@ -65,12 +65,12 @@ export default function LoginPage() {
             className="font-display font-bold leading-tight mb-6"
             style={{ fontSize: 48, color: "var(--bg)", letterSpacing: "-0.02em", lineHeight: 1.05 }}
           >
-            O projeto DRX,<br />
+            DRX Advogados,<br />
             <em
               className="not-italic"
               style={{ color: "var(--accent)", fontFamily: "DM Sans, sans-serif", fontWeight: 400 }}
             >
-              operando.
+              vendas no piloto automático.
             </em>
           </h1>
           <p style={{ fontSize: 15, color: "var(--ink-3)", lineHeight: 1.6, maxWidth: 360 }}>
