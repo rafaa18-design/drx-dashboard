@@ -29,6 +29,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const [authed, setAuthed] = useState(false);
   const [username, setUsername] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("drx_token");
@@ -39,6 +40,10 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       setUsername(getUsername());
     }
   }, [router]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (!authed) {
     return (
@@ -59,9 +64,22 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg)" }}>
 
+      {/* ── Overlay mobile ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
-        className="w-60 flex flex-col flex-shrink-0 h-screen"
+        className={`
+          fixed inset-y-0 left-0 z-50 w-60 flex flex-col flex-shrink-0 h-screen
+          transform transition-transform duration-200 ease-in-out
+          lg:relative lg:translate-x-0
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
         style={{
           background: "var(--sidebar-bg)",
           borderRight: "1px solid var(--sidebar-border)",
@@ -70,7 +88,6 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="px-6 py-6" style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
           <div className="flex items-center gap-2.5 mb-1">
-            {/* Ícone escudo */}
             <div style={{
               width: 28, height: 28, borderRadius: 8,
               background: "var(--accent)",
@@ -134,7 +151,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Footer — usuário + logout */}
+        {/* Footer */}
         <div className="px-4 py-4" style={{ borderTop: "1px solid var(--sidebar-border)" }}>
           <div className="flex items-center gap-3 px-2 py-2 rounded-lg mb-2" style={{ background: "var(--sidebar-surface)" }}>
             <div style={{
@@ -193,8 +210,28 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       {/* ── Conteúdo principal ──────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
 
+        {/* Mobile topbar */}
+        <header
+          className="flex items-center justify-between px-4 py-3 lg:hidden"
+          style={{ borderBottom: "1px solid var(--line)", background: "var(--surface)" }}
+        >
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg"
+            style={{ color: "var(--ink-2)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+          </button>
+          <span className="font-display font-bold" style={{ fontSize: 14, color: "var(--ink)" }}>
+            DRX Advogados
+          </span>
+          <div style={{ width: 36 }} />
+        </header>
+
         {/* Página */}
-        <main className="flex-1 px-8 py-8 animate-fadeIn overflow-y-auto">
+        <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8 animate-fadeIn overflow-y-auto">
           {children}
         </main>
       </div>

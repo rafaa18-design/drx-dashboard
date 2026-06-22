@@ -74,12 +74,13 @@ export default function LeadsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Leads</h1>
       </div>
 
       {isLoading && <p className="text-gray-500">Carregando...</p>}
 
-      <div className="bg-white rounded-xl border overflow-hidden">
+      {/* ── Desktop: tabela ── */}
+      <div className="hidden md:block bg-white rounded-xl border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
             <tr>
@@ -136,6 +137,53 @@ export default function LeadsPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* ── Mobile: cards ── */}
+      <div className="md:hidden space-y-3">
+        {data?.items.map((lead: Lead) => {
+          const { primary, secondary } = leadDisplay(lead);
+          return (
+            <div key={lead.id} className="bg-white rounded-xl border p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <Link href={`/leads/${lead.id}`} className="font-medium text-brand-700 hover:underline text-sm">
+                    {primary}
+                  </Link>
+                  {secondary && <p className="text-xs text-gray-400 mt-0.5">{secondary}</p>}
+                </div>
+                <button
+                  onClick={() => handleDelete(lead)}
+                  disabled={deleteLead.isPending}
+                  className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40 p-1"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {lead.qualification_level && (
+                  <span className={`px-2 py-0.5 rounded-full font-medium ${LEVEL_COLORS[lead.qualification_level] ?? ""}`}>
+                    {LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level}
+                  </span>
+                )}
+                <span className="text-gray-500">Score: {lead.qualification_score}</span>
+                <span className="text-gray-400">·</span>
+                <span className="text-gray-600">{STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}</span>
+                {lead.case_type && lead.case_type !== "—" && (
+                  <>
+                    <span className="text-gray-400">·</span>
+                    <span className="text-gray-500">{lead.case_type}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {!isLoading && !data?.items.length && (
+          <p className="text-center text-gray-400 py-8">Nenhum lead ainda.</p>
+        )}
       </div>
     </div>
   );

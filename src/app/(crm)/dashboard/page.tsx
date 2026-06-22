@@ -61,8 +61,8 @@ export default function DashboardPage() {
           Visão geral
         </p>
         <h1
-          className="font-display font-bold"
-          style={{ fontSize: 36, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.05 }}
+          className="font-display font-bold text-2xl sm:text-4xl"
+          style={{ color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.05 }}
         >
           Dashboard
         </h1>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
       {/* ── KPI Cards ─────────────────────────────────────── */}
       <div
-        className="grid grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
         style={{ border: "1px solid var(--line)", background: "var(--surface)" }}
       >
         <KPICard
@@ -99,7 +99,7 @@ export default function DashboardPage() {
       {/* ── Agendamentos próximos ─────────────────────────── */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
         <div
-          className="px-6 py-4 flex items-center justify-between"
+          className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
           style={{ borderBottom: "1px solid var(--line)" }}
         >
           <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           {!appts?.items.length ? (
             <p style={{ fontSize: 13, color: "var(--ink-4)", padding: "12px 0" }}>
               Nenhum agendamento pendente.
@@ -127,8 +127,8 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={appt.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0"
                     style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
                       padding: "12px 0",
                       borderBottom: "1px solid var(--line)",
                     }}
@@ -186,7 +186,7 @@ export default function DashboardPage() {
         }}
       >
         <div
-          className="px-6 py-4 flex items-center justify-between"
+          className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
           style={{ borderBottom: "1px solid var(--line)" }}
         >
           <div className="flex items-center gap-3">
@@ -211,7 +211,7 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="px-6 py-6">
+        <div className="px-4 sm:px-6 py-6">
           {funnel?.stages.length ? (
             <div className="space-y-3">
               {funnel.stages.map((s: { stage: string; count: number }) => {
