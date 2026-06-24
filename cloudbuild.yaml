@@ -1,0 +1,13 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_API_URL=https://drx-advocacia-ia-256225317807.southamerica-east1.run.app
+      - --build-arg=NEXT_PUBLIC_WS_URL=wss://drx-advocacia-ia-256225317807.southamerica-east1.run.app
+      - -t
+      - southamerica-east1-docker.pkg.dev/asani-drx/cloud-run-source-deploy/drx-advocacia-dashboard:latest
+      - .
+images:
+  - southamerica-east1-docker.pkg.dev/asani-drx/cloud-run-source-deploy/drx-advocacia-dashboard:latest
+options:
+  logging: CLOUD_LOGGING_ONLY
