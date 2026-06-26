@@ -1,0 +1,56 @@
+name: Deploy Dashboard to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: asani-drx
+  REGION: southamerica-east1
+  SERVICE: drx-advocacia-dashboard
+  IMAGE: southamerica-east1-docker.pkg.dev/asani-drx/cloud-run-source-deploy/drx-advocacia-dashboard:latest
+  WIF_PROVIDER: projects/256225317807/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  DEPLOY_SA: github-deployer@asani-drx.iam.gserviceaccount.com
+
+concurrency:
+  group: deploy-dashboard-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # necessário para o OIDC do Workload Identity Federation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Autenticar no GCP (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Os NEXT_PUBLIC_* são baked em build time via build-arg (ver cloudbuild.yaml)
+      - name: Build da imagem (Cloud Build)
+        run: |
+          gcloud builds submit \
+            --config cloudbuild.yaml \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --quiet
+
+      - name: Deploy no Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE" \
+            --region "$REGION" \
+            --project "$PROJECT_ID" \
+            --quiet
