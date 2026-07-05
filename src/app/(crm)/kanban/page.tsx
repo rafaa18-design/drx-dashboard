@@ -4,21 +4,22 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { PageHero } from "@/components/PageHero";
 import type { Lead } from "@/types";
 
-// ─── Column config ───────────────────────────────────────────────────────────
+// ─── Column config — paleta navy DRX ─────────────────────────────────────────
 
 const PRE_MEETING = [
-  { key: "new",       label: "Novo",        sub: "1ª mensagem",       bar: "#6E6A66" },
-  { key: "contacted", label: "Contactado",  sub: "Em atendimento",    bar: "#B8741A" },
-  { key: "qualified", label: "Qualificado", sub: "Score calculado",   bar: "#C17800" },
-  { key: "proposal",  label: "Proposta",    sub: "Reunião marcada",   bar: "#9C0F20" },
+  { key: "new",       label: "Novo",        sub: "1ª mensagem",       bar: "#9CACC0" },
+  { key: "contacted", label: "Contactado",  sub: "Em atendimento",    bar: "#5C7290" },
+  { key: "qualified", label: "Qualificado", sub: "Score calculado",   bar: "#273F5C" },
+  { key: "proposal",  label: "Proposta",    sub: "Reunião marcada",   bar: "#0F1B2B" },
 ] as const;
 
 const POST_MEETING = [
-  { key: "won",       label: "Fechado",    sub: "Contrato assinado", bar: "#2D6845" },
-  { key: "follow_up", label: "Follow-up",  sub: "Ficou de pensar",   bar: "#B8741A" },
-  { key: "lost",      label: "Perdido",    sub: "Não quer avançar",  bar: "#6E6A66" },
+  { key: "won",       label: "Fechado",    sub: "Contrato assinado", bar: "#0F7A5C" },
+  { key: "follow_up", label: "Follow-up",  sub: "Ficou de pensar",   bar: "#B45309" },
+  { key: "lost",      label: "Perdido",    sub: "Não quer avançar",  bar: "#9CACC0" },
 ] as const;
 
 const ALL_COLS = [...PRE_MEETING, ...POST_MEETING];
@@ -36,28 +37,36 @@ function formatAgo(dateStr: string): string {
   return `${days}d`;
 }
 
-function scoreStyle(level: Lead["qualification_level"]): { bg: string; text: string } {
+const LEVEL_LABELS: Record<string, string> = {
+  hot:          "Hot",
+  warm:         "Warm",
+  cold:         "Cold",
+  auto_meeting: "Auto",
+  disqualified: "Desqualificado",
+};
+
+function scoreStyle(level: string | null): { bg: string; text: string } {
   switch (level) {
-    case "hot":          return { bg: "rgba(156,15,32,0.10)",   text: "#9C0F20" };
-    case "warm":         return { bg: "rgba(193,120,0,0.10)",   text: "#C17800" };
-    case "cold":         return { bg: "rgba(110,106,102,0.10)", text: "#6E6A66" };
-    case "disqualified": return { bg: "rgba(110,106,102,0.06)", text: "#9A9693" };
-    default:             return { bg: "rgba(110,106,102,0.06)", text: "#9A9693" };
+    case "auto_meeting": return { bg: "rgba(15,122,92,0.10)",  text: "var(--ok)" };
+    case "hot":          return { bg: "rgba(179,38,30,0.08)",  text: "var(--danger)" };
+    case "warm":         return { bg: "rgba(180,83,9,0.08)",   text: "var(--warn)" };
+    case "cold":         return { bg: "rgba(92,114,144,0.10)", text: "var(--ink-3)" };
+    default:             return { bg: "rgba(156,172,192,0.10)", text: "var(--ink-4)" };
   }
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "#C13584",
-  tiktok:    "#010101",
-  youtube:   "#FF0000",
+  tiktok:    "#2C3E55",
+  youtube:   "#B3261E",
   twitter:   "#1DA1F2",
   facebook:  "#1877F2",
   linkedin:  "#0A66C2",
 };
 
 function platformColor(p: string | null | undefined) {
-  if (!p) return "#6E6A66";
-  return PLATFORM_COLORS[p.toLowerCase()] ?? "#6E6A66";
+  if (!p) return "#5C7290";
+  return PLATFORM_COLORS[p.toLowerCase()] ?? "#5C7290";
 }
 
 function platformLabel(lead: Lead) {
@@ -85,35 +94,24 @@ function KanbanCard({
     <div
       draggable
       onDragStart={(e) => onDragStart(e, lead)}
+      className="kanban-card"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--line)",
-        borderRadius: 10,
+        borderLeft: `3px solid ${lead.qualification_level ? sc.text : "var(--line)"}`,
         padding: "12px 13px",
-        cursor: "grab",
-        transition: "box-shadow 0.15s, transform 0.15s",
         userSelect: "none",
       }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = "0 4px 18px rgba(0,0,0,0.09)";
-        el.style.transform  = "translateY(-1px)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = "none";
-        el.style.transform  = "none";
-      }}
     >
-      {/* Row 1: platform pill + IA toggle */}
+      {/* Row 1: plataforma + toggle IA */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
         {plat ? (
           <span style={{
             fontSize: 9, fontFamily: "JetBrains Mono", fontWeight: 700,
             letterSpacing: "0.12em", textTransform: "uppercase",
             color: platformColor(plat),
-            background: `${platformColor(plat)}18`,
-            padding: "2px 7px", borderRadius: 4,
+            background: `${platformColor(plat)}14`,
+            padding: "2px 7px",
           }}>
             {plat}
           </span>
@@ -124,21 +122,30 @@ function KanbanCard({
         <button
           onClick={(e) => { e.stopPropagation(); onToggleAI(lead); }}
           disabled={toggling}
-          title={aiOn ? "Desligar IA" : "Ligar IA"}
+          title={aiOn ? "IA ativa — clique para pausar" : "IA pausada — clique para reativar"}
+          className="font-mono"
           style={{
-            width: 24, height: 24, borderRadius: 6, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, opacity: toggling ? 0.4 : 1,
-            border: `1px solid ${aiOn ? "rgba(45,104,69,0.3)" : "rgba(110,106,102,0.2)"}`,
-            background: aiOn ? "rgba(45,104,69,0.10)" : "rgba(110,106,102,0.06)",
-            transition: "all 0.15s",
+            display: "flex", alignItems: "center", gap: 5,
+            fontSize: 8, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+            padding: "3px 8px", cursor: "pointer",
+            opacity: toggling ? 0.4 : 1,
+            color: aiOn ? "var(--ok)" : "var(--danger)",
+            border: `1px solid ${aiOn ? "rgba(15,122,92,0.30)" : "rgba(179,38,30,0.30)"}`,
+            background: aiOn ? "rgba(15,122,92,0.07)" : "rgba(179,38,30,0.07)",
           }}
         >
-          {aiOn ? "🤖" : "⏸"}
+          <span
+            className={aiOn ? "animate-pulse" : undefined}
+            style={{
+              width: 5, height: 5, borderRadius: "50%",
+              background: aiOn ? "var(--ok)" : "var(--danger)",
+            }}
+          />
+          IA
         </button>
       </div>
 
-      {/* Row 2: name + phone */}
+      {/* Row 2: nome + telefone */}
       <Link href={`/leads/${lead.id}`} style={{ textDecoration: "none" }}>
         <p style={{
           fontSize: 13, fontWeight: 600, color: "var(--ink)",
@@ -156,29 +163,29 @@ function KanbanCard({
         )}
       </Link>
 
-      {/* Score bar */}
+      {/* Barra de score */}
       {lead.qualification_score > 0 && (
         <div style={{ marginBottom: 8 }}>
-          <div style={{ height: 3, background: "var(--line)", borderRadius: 99, overflow: "hidden" }}>
+          <div style={{ height: 3, background: "var(--line-soft)", overflow: "hidden" }}>
             <div style={{
               height: "100%", width: `${lead.qualification_score}%`,
-              background: sc.text, borderRadius: 99,
+              background: sc.text,
               transition: "width 0.5s ease",
             }} />
           </div>
         </div>
       )}
 
-      {/* Row 3: score badge + time */}
+      {/* Row 3: badge de score + tempo */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         {lead.qualification_level ? (
           <span style={{
             fontSize: 9, fontFamily: "JetBrains Mono", fontWeight: 700,
             letterSpacing: "0.1em", textTransform: "uppercase",
             color: sc.text, background: sc.bg,
-            padding: "2px 6px", borderRadius: 4,
+            padding: "2px 7px",
           }}>
-            {lead.qualification_level} · {lead.qualification_score}
+            {LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level} · {lead.qualification_score}
           </span>
         ) : (
           <span style={{ fontSize: 9, color: "var(--ink-4)", fontFamily: "JetBrains Mono" }}>
@@ -211,13 +218,13 @@ function KanbanColumn({
   onDragLeave: () => void;
 }) {
   return (
-    <div style={{ width: 248, flexShrink: 0, display: "flex", flexDirection: "column", maxHeight: "100%" }}>
+    <div style={{ width: 252, flexShrink: 0, display: "flex", flexDirection: "column", maxHeight: "100%" }}>
       {/* Header */}
       <div style={{ marginBottom: 10 }}>
-        <div style={{ height: 3, background: bar, borderRadius: 99, marginBottom: 10 }} />
+        <div style={{ height: 3, background: bar, marginBottom: 10 }} />
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "0 2px" }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+            <p className="font-display" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}>
               {label}
             </p>
             <p style={{ fontSize: 10, color: "var(--ink-3)", fontFamily: "JetBrains Mono", marginTop: 1 }}>
@@ -226,8 +233,8 @@ function KanbanColumn({
           </div>
           <span style={{
             fontSize: 11, fontFamily: "JetBrains Mono", fontWeight: 700,
-            color: bar, background: `${bar}18`,
-            padding: "2px 8px", borderRadius: 6, marginTop: 1,
+            color: bar, background: `${bar}16`,
+            padding: "2px 8px", marginTop: 1,
           }}>
             {leads.length}
           </span>
@@ -243,17 +250,21 @@ function KanbanColumn({
           flex: 1, overflowY: "auto",
           display: "flex", flexDirection: "column", gap: 8,
           padding: "10px 8px",
-          borderRadius: 12,
-          background: isOver ? `${bar}0A` : "rgba(0,0,0,0.015)",
-          border: `2px dashed ${isOver ? bar : "transparent"}`,
+          background: isOver ? `${bar}0D` : "rgba(15,27,43,0.02)",
+          border: `1px dashed ${isOver ? bar : "transparent"}`,
           transition: "background 0.15s, border-color 0.15s",
           minHeight: 64,
         }}
       >
         {leads.length === 0 && !isOver && (
-          <p style={{ textAlign: "center", paddingTop: 18, fontSize: 10, color: "var(--ink-4)", fontFamily: "JetBrains Mono" }}>
-            vazio
-          </p>
+          <div style={{
+            border: "1px dashed var(--line)",
+            padding: "18px 8px", textAlign: "center",
+          }}>
+            <p style={{ fontSize: 9, color: "var(--ink-4)", fontFamily: "JetBrains Mono", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+              sem leads
+            </p>
+          </div>
         )}
         {leads.map((lead) => (
           <KanbanCard
@@ -367,45 +378,26 @@ export default function KanbanPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 112px)" }}>
+    <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 112px)" }}>
 
       {/* ── Page header ─────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 24, flexShrink: 0 }}>
-        <div>
-          <h1 style={{
-            fontSize: 22, fontWeight: 800, color: "var(--ink)",
-            letterSpacing: "-0.03em", fontFamily: "Clash Display",
-          }}>
-            Funil de Leads
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 3 }}>
-            {leads.length} lead{leads.length !== 1 ? "s" : ""} · atualiza a cada 30s
-          </p>
-        </div>
-
-        {/* Stats pills */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{
-            fontSize: 10, fontFamily: "JetBrains Mono", fontWeight: 700,
-            color: "#9C0F20", background: "rgba(156,15,32,0.08)",
-            padding: "4px 10px", borderRadius: 6, letterSpacing: "0.1em",
-          }}>
-            {preMeetingCount} em pipeline
-          </span>
-          <span style={{
-            fontSize: 10, fontFamily: "JetBrains Mono", fontWeight: 700,
-            color: "#2D6845", background: "rgba(45,104,69,0.08)",
-            padding: "4px 10px", borderRadius: 6, letterSpacing: "0.1em",
-          }}>
-            {grouped["won"]?.length ?? 0} fechados
-          </span>
-        </div>
+      <div style={{ marginBottom: 24, flexShrink: 0 }}>
+        <PageHero
+          label="Pipeline comercial"
+          title="Funil de Leads"
+          subtitle={`${leads.length} lead${leads.length !== 1 ? "s" : ""} · arraste os cards entre as colunas`}
+          stats={[
+            { value: preMeetingCount, label: "Em pipeline" },
+            { value: postMeetingCount, label: "Pós-reunião" },
+            { value: grouped["won"]?.length ?? 0, label: "Fechados" },
+          ]}
+        />
       </div>
 
       {/* ── Board ───────────────────────────────────────────── */}
       <div style={{ flex: 1, overflowX: "auto", overflowY: "hidden", paddingBottom: 12 }}>
         <div style={{
-          display: "flex", gap: 12, height: "100%",
+          display: "flex", gap: 14, height: "100%",
           alignItems: "flex-start", minWidth: "max-content",
         }}>
 
@@ -431,11 +423,11 @@ export default function KanbanPage() {
           {/* Divider */}
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center",
-            padding: "16px 4px", gap: 6, flexShrink: 0, height: "100%",
+            padding: "16px 6px", gap: 8, flexShrink: 0, height: "100%",
           }}>
             <div style={{ flex: 1, width: 1, background: "var(--line)" }} />
-            <span style={{
-              fontSize: 8, fontFamily: "JetBrains Mono", fontWeight: 700,
+            <span className="font-mono" style={{
+              fontSize: 8, fontWeight: 700,
               letterSpacing: "0.2em", textTransform: "uppercase",
               color: "var(--ink-4)", writingMode: "vertical-lr",
               transform: "rotate(180deg)",

@@ -38,6 +38,8 @@ export interface FollowUpRow {
 export interface Conversation {
   id: string;
   lead_id: string;
+  lead_name: string | null;
+  lead_phone: string | null;
   channel: string;
   status: "active" | "human_required" | "closed" | "scheduled";
   ai_handoff_reason: string | null;

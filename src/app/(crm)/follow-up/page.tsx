@@ -3,23 +3,30 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { PageHero } from "@/components/PageHero";
 import type { FollowUpRow } from "@/types";
 
 const FU_LABELS: Record<number, { label: string; color: string; bg: string }> = {
-  1: { label: "FU01 — Dia 3",  color: "#1A56DB", bg: "rgba(26,86,219,0.10)" },
-  2: { label: "FU02 — Dia 6",  color: "#D97706", bg: "rgba(217,119,6,0.10)" },
-  3: { label: "FU03 — Dia 14", color: "#DC2626", bg: "rgba(220,38,38,0.10)" },
+  1: { label: "FU01 — Dia 3",  color: "var(--ink-3)", bg: "rgba(92,114,144,0.10)" },
+  2: { label: "FU02 — Dia 6",  color: "var(--warn)",  bg: "rgba(180,83,9,0.10)" },
+  3: { label: "FU03 — Dia 14", color: "var(--danger)",bg: "rgba(179,38,30,0.10)" },
 };
 
 const SCORE_COLOR = (s: number) =>
-  s >= 70 ? "var(--ok)" : s >= 40 ? "#D97706" : "var(--err)";
+  s >= 70 ? "var(--ok)" : s >= 40 ? "var(--warn)" : "var(--danger)";
+
+function initials(text: string): string {
+  const parts = text.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 function DayBadge({ days, eligible }: { days: number; eligible: boolean }) {
   return (
-    <span style={{
-      fontSize: 10, fontWeight: 700, fontFamily: "JetBrains Mono",
-      letterSpacing: "0.1em", padding: "2px 8px", borderRadius: 6,
-      background: eligible ? "rgba(5,150,105,0.12)" : "rgba(156,163,175,0.12)",
+    <span className="font-mono" style={{
+      fontSize: 9, fontWeight: 700,
+      letterSpacing: "0.08em", padding: "3px 9px", textTransform: "uppercase",
+      background: eligible ? "rgba(15,122,92,0.10)" : "rgba(156,172,192,0.12)",
       color: eligible ? "var(--ok)" : "var(--ink-4)",
     }}>
       {days}d pós-reunião
@@ -38,10 +45,12 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       title="Copiar mensagem"
+      className="font-mono"
       style={{
         background: "none", border: "none", cursor: "pointer",
         color: copied ? "var(--ok)" : "var(--ink-4)",
-        padding: "2px 6px", borderRadius: 4, fontSize: 11,
+        padding: "3px 8px", fontSize: 10, fontWeight: 700,
+        letterSpacing: "0.06em", textTransform: "uppercase",
         transition: "color 0.15s",
       }}
     >
@@ -62,44 +71,51 @@ function FollowUpCard({
   loading: boolean;
 }) {
   const fu = FU_LABELS[row.next_fu_number] ?? FU_LABELS[1];
+  const name = row.lead_name ?? "Sem nome";
 
   return (
     <div style={{
       background: "var(--surface)",
       border: "1px solid var(--line)",
-      borderRadius: 12,
-      padding: "20px 24px",
       display: "flex",
       flexDirection: "column",
       gap: 14,
-    }}>
+    }} className="p-4 sm:p-6">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink-1)" }}>
-              {row.lead_name ?? "Sem nome"}
-            </span>
-            <span style={{
-              fontSize: 9, fontWeight: 700, fontFamily: "JetBrains Mono",
-              letterSpacing: "0.14em", padding: "2px 8px", borderRadius: 6,
-              background: fu.bg, color: fu.color,
-              textTransform: "uppercase",
-            }}>
-              {fu.label}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div
+            className="font-display font-bold flex items-center justify-center flex-shrink-0"
+            style={{ width: 38, height: 38, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 13 }}
+          >
+            {initials(name)}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                {name}
+              </span>
+              <span className="font-mono" style={{
+                fontSize: 9, fontWeight: 700,
+                letterSpacing: "0.12em", padding: "3px 8px",
+                background: fu.bg, color: fu.color,
+                textTransform: "uppercase",
+              }}>
+                {fu.label}
+              </span>
+            </div>
+            <span className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>
+              {row.lead_phone}
             </span>
           </div>
-          <span style={{ fontSize: 12, color: "var(--ink-4)", fontFamily: "JetBrains Mono" }}>
-            {row.lead_phone}
-          </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="flex items-center gap-2">
           <DayBadge days={row.days_since_meeting} eligible={row.eligible} />
-          <div style={{
-            fontSize: 11, fontWeight: 700, fontFamily: "JetBrains Mono",
+          <div className="font-mono" style={{
+            fontSize: 10, fontWeight: 700,
             color: SCORE_COLOR(row.qualification_score),
-            padding: "2px 8px", borderRadius: 6,
+            padding: "3px 9px",
             background: "var(--bg)",
             border: "1px solid var(--line)",
           }}>
@@ -112,14 +128,13 @@ function FollowUpCard({
       <div style={{
         background: "var(--bg)",
         border: "1px solid var(--line)",
-        borderRadius: 8,
         padding: "12px 14px",
         position: "relative",
       }}>
-        <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55, margin: 0 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55, margin: 0, paddingRight: 60 }}>
           {row.next_fu_message}
         </p>
-        <div style={{ position: "absolute", top: 8, right: 10 }}>
+        <div style={{ position: "absolute", top: 6, right: 8 }}>
           <CopyButton text={row.next_fu_message} />
         </div>
       </div>
@@ -133,23 +148,21 @@ function FollowUpCard({
       )}
 
       {/* Ações */}
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="flex gap-2">
         <button
           disabled={!row.eligible || loading}
           onClick={onSend}
+          className="font-mono flex-1"
           style={{
-            flex: 1,
-            padding: "9px 0",
-            borderRadius: 8,
+            padding: "10px 0",
             border: "none",
             cursor: row.eligible && !loading ? "pointer" : "not-allowed",
-            background: row.eligible ? "var(--accent)" : "var(--line)",
+            background: row.eligible ? "var(--ink)" : "var(--line)",
             color: row.eligible ? "#fff" : "var(--ink-4)",
-            fontFamily: "JetBrains Mono",
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 700,
             letterSpacing: "0.1em",
-            textTransform: "uppercase" as const,
+            textTransform: "uppercase",
             transition: "opacity 0.15s",
             opacity: loading ? 0.6 : 1,
           }}
@@ -160,24 +173,23 @@ function FollowUpCard({
         <button
           disabled={loading}
           onClick={onResponded}
+          className="font-mono"
           style={{
-            padding: "9px 16px",
-            borderRadius: 8,
+            padding: "10px 16px",
             border: "1px solid var(--ok)",
             cursor: loading ? "not-allowed" : "pointer",
-            background: "rgba(5,150,105,0.08)",
+            background: "rgba(15,122,92,0.07)",
             color: "var(--ok)",
-            fontFamily: "JetBrains Mono",
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 700,
             letterSpacing: "0.1em",
-            textTransform: "uppercase" as const,
+            textTransform: "uppercase",
             transition: "opacity 0.15s",
             opacity: loading ? 0.6 : 1,
-            whiteSpace: "nowrap" as const,
+            whiteSpace: "nowrap",
           }}
         >
-          Lead Respondeu
+          Lead respondeu
         </button>
       </div>
     </div>
@@ -215,67 +227,89 @@ export default function FollowUpPage() {
 
   const items: FollowUpRow[] = data?.items ?? [];
   const eligibleCount = items.filter((r) => r.eligible).length;
+  const waitingCount = items.length - eligibleCount;
+
+  const [tab, setTab] = useState<"all" | "eligible" | "waiting">("all");
+  const visibleItems = items.filter((r) => {
+    if (tab === "eligible") return r.eligible;
+    if (tab === "waiting") return !r.eligible;
+    return true;
+  });
 
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto" }}>
-      {/* Title */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 className="font-display" style={{ fontSize: 24, fontWeight: 700, color: "var(--ink-1)", margin: 0 }}>
-          Follow-up
-        </h1>
-        <p style={{ fontSize: 13, color: "var(--ink-4)", margin: "6px 0 0", lineHeight: 1.5 }}>
-          Acompanhamento pós-reunião — FU01 · FU02 · FU03
-        </p>
-      </div>
+    <div className="space-y-8 animate-fadeIn">
+      <PageHero
+        label="Pós-reunião"
+        title="Follow-up"
+        subtitle="Acompanhamento FU01 · FU02 · FU03"
+        stats={[
+          { value: items.length, label: "Total na fila" },
+          { value: eligibleCount, label: "Prontos para envio" },
+          { value: waitingCount, label: "Aguardando janela" },
+        ]}
+      />
 
-      {/* Stats */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 28 }}>
-        {[
-          { label: "Total na fila", value: items.length },
-          { label: "Prontos para envio", value: eligibleCount, accent: true },
-          { label: "Aguardando janela", value: items.length - eligibleCount },
-        ].map((s) => (
-          <div key={s.label} style={{
-            flex: 1,
-            background: s.accent ? "rgba(26,86,219,0.06)" : "var(--surface)",
-            border: `1px solid ${s.accent ? "rgba(26,86,219,0.2)" : "var(--line)"}`,
-            borderRadius: 10,
-            padding: "14px 18px",
-          }}>
-            <p style={{ fontSize: 22, fontWeight: 700, color: s.accent ? "var(--accent)" : "var(--ink-1)", margin: 0, fontFamily: "JetBrains Mono" }}>
-              {s.value}
-            </p>
-            <p style={{ fontSize: 10, color: "var(--ink-4)", margin: "4px 0 0", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "JetBrains Mono" }}>
-              {s.label}
-            </p>
-          </div>
-        ))}
-      </div>
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+      {/* Filtro por abas */}
+      {items.length > 0 && (
+        <div className="flex gap-2 mb-6">
+          {[
+            { key: "all" as const,      label: `Todos (${items.length})` },
+            { key: "eligible" as const, label: `Prontos (${eligibleCount})` },
+            { key: "waiting" as const,  label: `Aguardando (${waitingCount})` },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className="font-mono"
+              style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                padding: "8px 14px", cursor: "pointer",
+                color: tab === t.key ? "#FFFFFF" : "var(--ink-3)",
+                background: tab === t.key ? "var(--ink)" : "var(--surface)",
+                border: `1px solid ${tab === t.key ? "var(--ink)" : "var(--line)"}`,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Content */}
       {isLoading && (
-        <p style={{ color: "var(--ink-4)", fontSize: 13 }}>Carregando...</p>
+        <p className="font-mono" style={{ color: "var(--ink-4)", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", textAlign: "center", padding: "32px 0" }}>
+          Carregando...
+        </p>
       )}
 
       {isError && (
-        <p style={{ color: "var(--err)", fontSize: 13 }}>
+        <p style={{ color: "var(--danger)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>
           Erro ao carregar follow-ups. Tente recarregar a página.
         </p>
       )}
 
       {!isLoading && !isError && items.length === 0 && (
         <div style={{
-          textAlign: "center", padding: "60px 0",
-          color: "var(--ink-4)", fontSize: 13,
+          textAlign: "center", padding: "56px 16px",
+          background: "var(--surface)", border: "1px solid var(--line)",
         }}>
-          <p style={{ fontSize: 32, marginBottom: 12 }}>✓</p>
-          <p>Nenhum lead aguardando follow-up no momento.</p>
-          <p style={{ fontSize: 11, marginTop: 6 }}>Leads em proposta com reunião realizada aparecerão aqui.</p>
+          <p className="font-mono mb-2" style={{ fontSize: 10, color: "var(--ok)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+            ✓ tudo em dia
+          </p>
+          <p style={{ fontSize: 13, color: "var(--ink-3)" }}>Nenhum lead aguardando follow-up no momento.</p>
+          <p style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 6 }}>Leads em proposta com reunião realizada aparecerão aqui.</p>
+        </div>
+      )}
+
+      {!isLoading && items.length > 0 && !visibleItems.length && (
+        <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--ink-4)", fontSize: 13 }}>
+          Nenhum lead nesse filtro.
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {items.map((row) => (
+        {visibleItems.map((row) => (
           <FollowUpCard
             key={row.lead_id}
             row={row}
@@ -284,6 +318,7 @@ export default function FollowUpPage() {
             onResponded={() => respondedMutation.mutate(row.lead_id)}
           />
         ))}
+      </div>
       </div>
     </div>
   );

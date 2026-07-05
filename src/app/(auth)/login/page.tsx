@@ -34,57 +34,111 @@ export default function LoginPage() {
     >
       {/* ── Painel esquerdo — identidade ─────────────────── */}
       <div
-        className="hidden lg:flex flex-col justify-between w-1/2 p-16"
-        style={{ background: "var(--ink)" }}
+        className="hidden lg:flex flex-col w-1/2 p-16 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg, #0F1B2B 0%, #16283D 55%, #273F5C 100%)",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)",
+        }}
       >
-        {/* Logo */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span
-              className="inline-block w-2 h-2 rounded-full animate-pulse"
-              style={{ background: "var(--accent)" }}
-            />
-            <span
-              className="font-display font-bold"
-              style={{ fontSize: 20, color: "var(--bg)", letterSpacing: "-0.02em" }}
-            >
-              DRX Advogados
-            </span>
-          </div>
-          <p
-            className="font-mono"
-            style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.2em", textTransform: "uppercase" }}
-          >
-            Sistema Comercial · Asani
-          </p>
+        {/* Textura — grade de pontos sutil */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0)",
+            backgroundSize: "26px 26px",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Watermark tipográfico — eco do "&" da marca */}
+        <div
+          aria-hidden
+          className="font-display font-bold"
+          style={{
+            position: "absolute",
+            right: -60,
+            bottom: -120,
+            fontSize: 480,
+            lineHeight: 1,
+            color: "rgba(255,255,255,0.035)",
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        >
+          &amp;
         </div>
 
-        {/* Tagline */}
-        <div>
-          <h1
-            className="font-display font-bold leading-tight mb-6"
-            style={{ fontSize: 48, color: "var(--bg)", letterSpacing: "-0.02em", lineHeight: 1.05 }}
-          >
-            DRX Advogados,<br />
-            <em
-              className="not-italic"
-              style={{ color: "var(--accent)", fontFamily: "DM Sans, sans-serif", fontWeight: 400 }}
+        {/* Linha de luz sutil no topo */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+          }}
+        />
+
+        {/* Cantos — moldura sutil tipo selo/plaqueta */}
+        {[
+          { top: 40, left: 40, borderTop: "1px solid rgba(255,255,255,0.22)", borderLeft: "1px solid rgba(255,255,255,0.22)" },
+          { top: 40, right: 40, borderTop: "1px solid rgba(255,255,255,0.22)", borderRight: "1px solid rgba(255,255,255,0.22)" },
+          { bottom: 40, left: 40, borderBottom: "1px solid rgba(255,255,255,0.22)", borderLeft: "1px solid rgba(255,255,255,0.22)" },
+          { bottom: 40, right: 40, borderBottom: "1px solid rgba(255,255,255,0.22)", borderRight: "1px solid rgba(255,255,255,0.22)" },
+        ].map((pos, i) => (
+          <div key={i} style={{ position: "absolute", width: 18, height: 18, pointerEvents: "none", ...pos }} />
+        ))}
+
+        {/* Identidade — lockup horizontal: logo + nome colado ao lado */}
+        <div
+          className="flex-1 flex items-center justify-center"
+          style={{ position: "relative", zIndex: 1, transform: "translateX(-48px)" }}
+        >
+          <img
+            src="/logo-oficial.png"
+            alt="DR&X"
+            style={{
+              height: 260,
+              width: "auto",
+              display: "block",
+              filter: "brightness(0) invert(1) drop-shadow(0 6px 20px rgba(0,0,0,0.4))",
+            }}
+          />
+          <div style={{ marginLeft: 20, textAlign: "left" }}>
+            <p
+              className="font-display font-bold"
+              style={{ fontSize: 26, color: "#FFFFFF", letterSpacing: "-0.01em", lineHeight: 1.2, whiteSpace: "nowrap" }}
             >
-              vendas no piloto automático.
-            </em>
-          </h1>
-          <p style={{ fontSize: 15, color: "var(--ink-3)", lineHeight: 1.6, maxWidth: 360 }}>
-            Sistema de atendimento e qualificação de leads com IA Tiago integrada ao pipeline comercial.
-          </p>
+              Dias, Rocha &amp; Xavier
+            </p>
+            <p
+              className="font-mono"
+              style={{ marginTop: 6, fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.26em", textTransform: "uppercase" }}
+            >
+              Advogados
+            </p>
+          </div>
         </div>
 
         {/* Versão */}
-        <p
-          className="font-mono"
-          style={{ fontSize: 9, color: "var(--ink-4)", letterSpacing: "0.14em", textTransform: "uppercase" }}
-        >
-          Asani × DRX · v1.1 · 2026
-        </p>
+        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center" }}>
+          <p
+            className="font-mono text-center"
+            style={{
+              display: "inline-block",
+              paddingTop: 14,
+              borderTop: "1px solid rgba(255,255,255,0.22)",
+              fontSize: 9,
+              color: "rgba(255,255,255,0.35)",
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+            }}
+          >
+            Asani × DRX · v1.1 · 2026
+          </p>
+        </div>
       </div>
 
       {/* ── Painel direito — login ────────────────────────── */}
@@ -92,19 +146,14 @@ export default function LoginPage() {
         <div className="w-full max-w-sm animate-fadeIn">
 
           {/* Header mobile */}
-          <div className="lg:hidden mb-10">
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className="inline-block w-2 h-2 rounded-full animate-pulse"
-                style={{ background: "var(--accent)" }}
-              />
-              <span
-                className="font-display font-bold"
-                style={{ fontSize: 18, color: "var(--ink)", letterSpacing: "-0.02em" }}
-              >
-                DRX Advogados
-              </span>
-            </div>
+          <div className="lg:hidden mb-10 flex items-center gap-3">
+            <img src="/logo-oficial.png" alt="DR&X" style={{ height: 34, width: "auto", display: "block" }} />
+            <span
+              className="font-mono"
+              style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.14em", textTransform: "uppercase" }}
+            >
+              Dias, Rocha &amp; Xavier
+            </span>
           </div>
 
           {/* Título do form */}
@@ -145,10 +194,16 @@ export default function LoginPage() {
                   color: "var(--ink)",
                   fontFamily: "DM Sans, sans-serif",
                   borderRadius: 0,
-                  transition: "border-color 0.15s",
+                  transition: "border-color 0.15s, box-shadow 0.15s",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-                onBlur={(e) => (e.target.style.borderColor = "var(--line)")}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "var(--accent)";
+                  e.target.style.boxShadow = "0 0 0 3px var(--accent-soft)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "var(--line)";
+                  e.target.style.boxShadow = "none";
+                }}
               />
             </div>
 
@@ -173,10 +228,16 @@ export default function LoginPage() {
                     color: "var(--ink)",
                     fontFamily: "DM Sans, sans-serif",
                     borderRadius: 0,
-                    transition: "border-color 0.15s",
+                    transition: "border-color 0.15s, box-shadow 0.15s",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-                  onBlur={(e) => (e.target.style.borderColor = "var(--line)")}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "var(--accent)";
+                    e.target.style.boxShadow = "0 0 0 3px var(--accent-soft)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "var(--line)";
+                    e.target.style.boxShadow = "none";
+                  }}
                 />
                 <button
                   type="button"
@@ -206,9 +267,10 @@ export default function LoginPage() {
 
             {error && (
               <p
-                className="font-mono"
-                style={{ fontSize: 11, color: "var(--accent)", letterSpacing: "0.06em" }}
+                className="font-mono flex items-center gap-2"
+                style={{ fontSize: 11, color: "var(--danger)", letterSpacing: "0.02em" }}
               >
+                <span style={{ display: "inline-block", width: 4, height: 4, background: "var(--danger)", flexShrink: 0 }} />
                 {error}
               </p>
             )}
@@ -216,23 +278,39 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 font-medium text-sm"
+              className="w-full py-3.5 font-medium text-sm"
               style={{
-                background: loading ? "var(--ink-3)" : "var(--accent)",
+                background: loading ? "var(--ink-3)" : "var(--ink)",
                 color: "white",
                 borderRadius: 0,
-                letterSpacing: "0.04em",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                fontSize: 12,
+                fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
+                transition: "background 0.15s, box-shadow 0.15s",
+                boxShadow: "0 1px 2px rgba(15,27,43,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.background = "var(--accent)";
+                  e.currentTarget.style.boxShadow = "0 8px 20px -6px rgba(15,27,43,0.4)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = loading ? "var(--ink-3)" : "var(--ink)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(15,27,43,0.1)";
               }}
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? "Entrando..." : "Entrar no sistema"}
             </button>
           </form>
 
           <p
-            className="font-mono mt-8"
+            className="font-mono mt-8 flex items-center gap-2"
             style={{ fontSize: 9, color: "var(--ink-4)", letterSpacing: "0.14em", textTransform: "uppercase" }}
           >
+            <span style={{ display: "inline-block", width: 12, height: 1, background: "var(--line)" }} />
             Acesso autorizado apenas para equipe DRX
           </p>
         </div>

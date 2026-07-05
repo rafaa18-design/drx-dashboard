@@ -1,33 +1,33 @@
 /* ── Fontes — devem vir ANTES do @tailwind ───────────────────── */
-@import url("https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Variáveis DRX · Tema Azul ───────────────────────────────── */
+/* ── Variáveis DRX · Tema Navy (Dias, Rocha & Xavier) ─────────── */
 :root {
-  --bg:          #EEF3FA;
+  --bg:          #F5F7FA;
   --surface:     #FFFFFF;
-  --ink:         #0F1C2E;
-  --ink-2:       #2C3E55;
-  --ink-3:       #5B7A99;
-  --ink-4:       #94A8BF;
-  --line:        #C8D9EC;
-  --line-soft:   #DDE8F4;
-  --accent:      #1A56DB;
-  --accent-soft: rgba(26,86,219,0.08);
-  --accent-line: rgba(26,86,219,0.20);
-  --warn:        #F59E0B;
-  --ok:          #059669;
+  --ink:         #0F1B2B;
+  --ink-2:       #273F5C;
+  --ink-3:       #5C7290;
+  --ink-4:       #9CACC0;
+  --line:        #DCE3EC;
+  --line-soft:   #EAEEF3;
+  --accent:      #273F5C;
+  --accent-soft: rgba(39,63,92,0.08);
+  --accent-line: rgba(39,63,92,0.20);
+  --warn:        #B45309;
+  --ok:          #0F7A5C;
+  --danger:      #B3261E;
 
   /* Sidebar */
-  --sidebar-bg:      #0F1C2E;
-  --sidebar-surface: #162338;
+  --sidebar-bg:      #0F1B2B;
+  --sidebar-surface: #172A40;
   --sidebar-border:  rgba(255,255,255,0.07);
   --sidebar-text:    rgba(255,255,255,0.55);
-  --sidebar-active:  rgba(26,86,219,0.18);
+  --sidebar-active:  rgba(39,63,92,0.35);
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
@@ -54,7 +54,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
 /* ── Tipografia DRX ──────────────────────────────────────────── */
-.font-display { font-family: "Clash Display", sans-serif; }
+.font-display { font-family: "Source Serif 4", Georgia, serif; }
 .font-mono    { font-family: "JetBrains Mono", monospace; }
 
 .label {
@@ -76,11 +76,11 @@ body {
 }
 
 /* ── Badges de nível ─────────────────────────────────────────── */
-.badge-hot          { background: rgba(239,68,68,0.10);   color: #DC2626; }
-.badge-warm         { background: rgba(245,158,11,0.10);  color: #D97706; }
-.badge-cold         { background: rgba(26,86,219,0.10);   color: #1A56DB; }
-.badge-disqualified { background: rgba(148,168,191,0.15); color: #5B7A99; }
-.badge-auto         { background: rgba(5,150,105,0.10);   color: #059669; }
+.badge-hot          { background: rgba(179,38,30,0.08);   color: var(--danger); }
+.badge-warm         { background: rgba(180,83,9,0.08);    color: var(--warn); }
+.badge-cold         { background: rgba(92,114,144,0.10);  color: var(--ink-3); }
+.badge-disqualified { background: rgba(156,172,192,0.12); color: var(--ink-4); }
+.badge-auto         { background: rgba(15,122,92,0.10);   color: var(--ok); }
 
 /* ── Animações ───────────────────────────────────────────────── */
 @keyframes drx-pulse {
@@ -98,3 +98,83 @@ body {
 
 /* ── Transições ──────────────────────────────────────────────── */
 a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
+
+/* ── Micro-interações do dashboard ───────────────────────────── */
+.kpi-tile { position: relative; transition: background 0.2s; }
+.kpi-tile::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.kpi-tile:hover::after { transform: scaleX(1); }
+
+.row-hover { transition: background 0.15s; }
+.row-hover:hover { background: var(--accent-soft); }
+
+.btn-meet {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+  background: var(--surface);
+  padding: 5px 12px;
+}
+.btn-meet:hover { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
+
+/* ── Kanban ──────────────────────────────────────────────────── */
+.kanban-card {
+  cursor: grab;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+.kanban-card:hover {
+  box-shadow: 0 6px 20px rgba(15,27,43,0.10);
+  transform: translateY(-1px);
+  border-color: var(--ink-4);
+}
+.kanban-card:active { cursor: grabbing; }
+
+/* ── Toggle de IA (reutilizado em Leads e Funil) ─────────────── */
+.ia-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 9px; cursor: pointer; border-radius: 0;
+  transition: opacity 0.15s;
+}
+.ia-chip[data-on="true"] {
+  color: var(--ok);
+  border: 1px solid rgba(15,122,92,0.3);
+  background: rgba(15,122,92,0.07);
+}
+.ia-chip[data-on="false"] {
+  color: var(--danger);
+  border: 1px solid rgba(179,38,30,0.3);
+  background: rgba(179,38,30,0.07);
+}
+.ia-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+.ia-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Inputs de filtro (Leads, Agendamentos, etc.) ────────────── */
+.filter-input, .filter-select {
+  font-size: 13px;
+  font-family: "DM Sans", sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 9px 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.filter-input:focus, .filter-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.filter-select { cursor: pointer; }

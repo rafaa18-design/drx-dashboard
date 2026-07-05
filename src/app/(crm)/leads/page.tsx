@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { PageHero } from "@/components/PageHero";
 import type { Lead } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -13,6 +15,37 @@ const STATUS_LABELS: Record<string, string> = {
   won:        "Fechado",
   follow_up:  "Follow-up",
   lost:       "Perdido",
+};
+
+const LEVEL_LABELS: Record<string, string> = {
+  auto_meeting: "Auto",
+  hot:          "Quente",
+  warm:         "Morno",
+  cold:         "Frio",
+  disqualified: "Desqualificado",
+};
+
+const LEVEL_BADGE: Record<string, string> = {
+  auto_meeting: "badge-auto",
+  hot:          "badge-hot",
+  warm:         "badge-warm",
+  cold:         "badge-cold",
+  disqualified: "badge-disqualified",
+};
+
+const CASE_LABELS: Record<string, string> = {
+  permanent_ban:        "Banimento permanente",
+  temporary_restriction:"Restrição temporária",
+  warning_only:         "Apenas aviso",
+};
+
+const PLATFORM_COLORS: Record<string, string> = {
+  instagram: "#C13584",
+  tiktok:    "#273F5C",
+  youtube:   "#B3261E",
+  twitter:   "#1DA1F2",
+  facebook:  "#1877F2",
+  linkedin:  "#0A66C2",
 };
 
 const GARBAGE = new Set(["none", "null", "unknown", "undefined", ""]);
@@ -31,38 +64,117 @@ function leadDisplay(lead: Lead): { primary: string; secondary: string | null } 
   return { primary: "—", secondary: null };
 }
 
-const LEVEL_LABELS: Record<string, string> = {
-  hot:          "Quente",
-  warm:         "Morno",
-  cold:         "Frio",
-  disqualified: "Desqualificado",
-};
+function initials(text: string): string {
+  const parts = text.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
-const LEVEL_COLORS: Record<string, string> = {
-  hot:          "bg-red-100 text-red-700",
-  warm:         "bg-orange-100 text-orange-700",
-  cold:         "bg-blue-100 text-blue-700",
-  disqualified: "bg-gray-100 text-gray-500",
-};
+function platformColor(p: string | null | undefined) {
+  if (!p) return "var(--ink-3)";
+  return PLATFORM_COLORS[p.toLowerCase()] ?? "var(--ink-3)";
+}
+
+function scoreColor(level: string | null): string {
+  switch (level) {
+    case "auto_meeting": return "var(--ok)";
+    case "hot":          return "var(--danger)";
+    case "warm":         return "var(--warn)";
+    case "cold":         return "var(--ink-3)";
+    default:             return "var(--ink-4)";
+  }
+}
+
+function formatAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2) return "agora";
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d`;
+}
+
+// ─── IA toggle chip (compartilhado entre tabela e cards mobile) ────────────
+
+function IAToggle({ lead, onToggle, toggling }: { lead: Lead; onToggle: () => void; toggling: boolean }) {
+  const on = lead.ai_active !== false;
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      disabled={toggling}
+      title={on ? "IA ativa — clique para pausar" : "IA pausada — clique para reativar"}
+      className="ia-chip"
+      data-on={on}
+    >
+      <span className={`ia-dot ${on ? "animate-pulse" : ""}`} style={{ background: on ? "var(--ok)" : "var(--danger)" }} />
+      IA
+    </button>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────
 
 export default function LeadsPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ["leads"], queryFn: () => api.getLeads() });
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [levelFilter, setLevelFilter] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const params: Record<string, string> = {};
+  if (debouncedSearch) params.search = debouncedSearch;
+  if (statusFilter) params.status = statusFilter;
+  if (levelFilter) params.level = levelFilter;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["leads", params],
+    queryFn: () => api.getLeads(params),
+  });
+
+  const items = (data?.items ?? []) as Lead[];
+  const hasFilters = !!(debouncedSearch || statusFilter || levelFilter);
 
   const deleteLead = useMutation({
     mutationFn: (id: string) => api.deleteLead(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ["leads"] });
-      const prev = qc.getQueryData(["leads"]);
-      qc.setQueryData(["leads"], (old: { items: Lead[]; total: number } | undefined) =>
-        old ? { ...old, items: old.items.filter((l) => l.id !== id) } : old
+      const prev = qc.getQueryData(["leads", params]);
+      qc.setQueryData(["leads", params], (old: { items: Lead[]; total: number } | undefined) =>
+        old ? { ...old, items: old.items.filter((l) => l.id !== id), total: old.total - 1 } : old
       );
       return { prev };
     },
     onError: (_err, _id, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["leads"], ctx.prev);
+      if (ctx?.prev) qc.setQueryData(["leads", params], ctx.prev);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+  });
+
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const toggleAI = useMutation({
+    mutationFn: (lead: Lead) => api.toggleAI(lead.id),
+    onMutate: async (lead) => {
+      setTogglingIds((s) => new Set([...s, lead.id]));
+      await qc.cancelQueries({ queryKey: ["leads"] });
+      const prev = qc.getQueryData(["leads", params]);
+      qc.setQueryData(["leads", params], (old: { items: Lead[]; total: number } | undefined) =>
+        old ? { ...old, items: old.items.map((l) => l.id === lead.id ? { ...l, ai_active: !l.ai_active } : l) } : old
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { if (ctx?.prev) qc.setQueryData(["leads", params], ctx.prev); },
+    onSettled: (_d, _e, lead) => {
+      setTogglingIds((s) => { const n = new Set(s); n.delete(lead.id); return n; });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    },
   });
 
   function handleDelete(lead: Lead) {
@@ -71,120 +183,282 @@ export default function LeadsPage() {
     deleteLead.mutate(lead.id);
   }
 
+  const hotCount = items.filter((l) => l.qualification_level === "hot" || (l.qualification_level as string) === "auto_meeting").length;
+  const aiOnCount = items.filter((l) => l.ai_active !== false).length;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Leads</h1>
+    <div className="space-y-6 animate-fadeIn">
+      <PageHero
+        label="Base de contatos"
+        title="Leads"
+        stats={[
+          { value: data?.total ?? "—", label: "Leads na base" },
+          { value: isLoading ? "—" : hotCount, label: "Quentes / Auto" },
+          { value: isLoading ? "—" : aiOnCount, label: "Com IA ativa" },
+        ]}
+      />
+
+      {/* ── Filtros ─────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <svg
+            width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--ink-4)" }}
+          >
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nome ou telefone..."
+            className="filter-input w-full"
+            style={{ paddingLeft: 36 }}
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">Todos os status</option>
+          {Object.entries(STATUS_LABELS).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+        <select
+          value={levelFilter}
+          onChange={(e) => setLevelFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">Todos os níveis</option>
+          {Object.entries(LEVEL_LABELS).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+        {hasFilters && (
+          <button
+            onClick={() => { setSearch(""); setStatusFilter(""); setLevelFilter(""); }}
+            className="font-mono"
+            style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "var(--ink-3)", border: "1px solid var(--line)", background: "var(--surface)",
+              padding: "0 16px", whiteSpace: "nowrap", cursor: "pointer",
+            }}
+          >
+            Limpar filtros
+          </button>
+        )}
       </div>
 
-      {isLoading && <p className="text-gray-500">Carregando...</p>}
-
       {/* ── Desktop: tabela ── */}
-      <div className="hidden md:block bg-white rounded-xl border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 text-left">Nome / Telefone</th>
-              <th className="px-4 py-3 text-left">Área</th>
-              <th className="px-4 py-3 text-left">Score</th>
-              <th className="px-4 py-3 text-left">Nível</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3"></th>
+      <div className="hidden md:block" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+        <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--line)" }}>
+              {["Lead", "Plataforma", "Caso", "Score", "Nível", "Status", "IA", ""].map((h) => (
+                <th
+                  key={h}
+                  className="font-mono text-left"
+                  style={{ padding: "12px 16px", fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data?.items.map((lead: Lead) => {
+          <tbody>
+            {items.map((lead) => {
               const { primary, secondary } = leadDisplay(lead);
+              const plat = clean(lead.platform);
+              const caseType = clean(lead.case_type);
               return (
-                <tr key={lead.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <Link href={`/leads/${lead.id}`} className="font-medium text-brand-700 hover:underline">
-                      {primary}
-                    </Link>
-                    {secondary && (
-                      <div className="text-xs text-gray-400">{secondary}</div>
+                <tr
+                  key={lead.id}
+                  className="row-hover"
+                  style={{ borderBottom: "1px solid var(--line-soft)" }}
+                >
+                  <td style={{ padding: "12px 16px" }}>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="font-display font-bold flex items-center justify-center flex-shrink-0"
+                        style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 12 }}
+                      >
+                        {initials(primary === "—" ? "?" : primary)}
+                      </div>
+                      <div className="min-w-0">
+                        <Link href={`/leads/${lead.id}`} className="block truncate" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                          {primary}
+                        </Link>
+                        {secondary && (
+                          <p className="font-mono truncate" style={{ fontSize: 11, color: "var(--ink-3)" }}>{secondary}</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    {plat ? (
+                      <span
+                        className="font-mono"
+                        style={{
+                          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                          color: platformColor(plat), background: `${platformColor(plat)}14`, padding: "2px 8px",
+                        }}
+                      >
+                        {plat}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 12, color: "var(--ink-4)" }}>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{lead.case_type ?? "—"}</td>
-                  <td className="px-4 py-3 font-medium">{lead.qualification_score}</td>
-                  <td className="px-4 py-3">
-                    {lead.qualification_level && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${LEVEL_COLORS[lead.qualification_level] ?? ""}`}>
+                  <td style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-3)", maxWidth: 180 }}>
+                    {caseType ? (CASE_LABELS[caseType] ?? caseType) : "—"}
+                  </td>
+                  <td style={{ padding: "12px 16px", minWidth: 100 }}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold" style={{ fontSize: 13, color: scoreColor(lead.qualification_level) }}>
+                        {lead.qualification_score}
+                      </span>
+                      <div style={{ width: 42, height: 3, background: "var(--line-soft)", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%",
+                          width: `${Math.min(100, Math.max(0, lead.qualification_score))}%`,
+                          background: scoreColor(lead.qualification_level),
+                        }} />
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    {lead.qualification_level ? (
+                      <span
+                        className={`font-mono ${LEVEL_BADGE[lead.qualification_level] ?? ""}`}
+                        style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "3px 8px" }}
+                      >
                         {LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level}
                       </span>
+                    ) : (
+                      <span style={{ fontSize: 11, color: "var(--ink-4)" }}>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDelete(lead)}
-                      disabled={deleteLead.isPending}
-                      title="Apagar lead"
-                      className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
-                      </svg>
-                    </button>
+                  <td style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-2)" }}>
+                    {STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <IAToggle lead={lead} toggling={togglingIds.has(lead.id)} onToggle={() => toggleAI.mutate(lead)} />
+                  </td>
+                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                    <div className="flex items-center justify-end gap-3">
+                      <span className="font-mono" style={{ fontSize: 10, color: "var(--ink-4)" }}>{formatAgo(lead.created_at)}</span>
+                      <button
+                        onClick={() => handleDelete(lead)}
+                        disabled={deleteLead.isPending}
+                        title="Apagar lead"
+                        style={{ color: "var(--ink-4)", cursor: "pointer", display: "flex", opacity: deleteLead.isPending ? 0.4 : 1 }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--danger)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-4)")}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
-            {!isLoading && !data?.items.length && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Nenhum lead ainda.</td>
-              </tr>
-            )}
           </tbody>
         </table>
+
+        {isLoading && (
+          <div className="text-center" style={{ padding: "48px 0" }}>
+            <span className="font-mono" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+              Carregando leads...
+            </span>
+          </div>
+        )}
+        {!isLoading && !items.length && (
+          <EmptyState hasFilters={hasFilters} />
+        )}
       </div>
 
       {/* ── Mobile: cards ── */}
       <div className="md:hidden space-y-3">
-        {data?.items.map((lead: Lead) => {
+        {items.map((lead) => {
           const { primary, secondary } = leadDisplay(lead);
+          const plat = clean(lead.platform);
           return (
-            <div key={lead.id} className="bg-white rounded-xl border p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <Link href={`/leads/${lead.id}`} className="font-medium text-brand-700 hover:underline text-sm">
-                    {primary}
-                  </Link>
-                  {secondary && <p className="text-xs text-gray-400 mt-0.5">{secondary}</p>}
+            <div key={lead.id} style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: 16 }}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="font-display font-bold flex items-center justify-center flex-shrink-0"
+                    style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 13 }}
+                  >
+                    {initials(primary === "—" ? "?" : primary)}
+                  </div>
+                  <div className="min-w-0">
+                    <Link href={`/leads/${lead.id}`} className="block truncate" style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
+                      {primary}
+                    </Link>
+                    {secondary && <p className="font-mono truncate" style={{ fontSize: 11, color: "var(--ink-3)" }}>{secondary}</p>}
+                  </div>
                 </div>
                 <button
                   onClick={() => handleDelete(lead)}
                   disabled={deleteLead.isPending}
-                  className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40 p-1"
+                  style={{ color: "var(--ink-4)", padding: 4, flexShrink: 0, opacity: deleteLead.isPending ? 0.4 : 1 }}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                {lead.qualification_level && (
-                  <span className={`px-2 py-0.5 rounded-full font-medium ${LEVEL_COLORS[lead.qualification_level] ?? ""}`}>
-                    {LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level}
+
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                {plat && (
+                  <span className="font-mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: platformColor(plat), background: `${platformColor(plat)}14`, padding: "2px 8px" }}>
+                    {plat}
                   </span>
                 )}
-                <span className="text-gray-500">Score: {lead.qualification_score}</span>
-                <span className="text-gray-400">·</span>
-                <span className="text-gray-600">{STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}</span>
-                {lead.case_type && lead.case_type !== "—" && (
-                  <>
-                    <span className="text-gray-400">·</span>
-                    <span className="text-gray-500">{lead.case_type}</span>
-                  </>
+                {lead.qualification_level && (
+                  <span className={`font-mono ${LEVEL_BADGE[lead.qualification_level] ?? ""}`} style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "3px 8px" }}>
+                    {LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level} · {lead.qualification_score}
+                  </span>
                 )}
+                <span className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>
+                  {STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <IAToggle lead={lead} toggling={togglingIds.has(lead.id)} onToggle={() => toggleAI.mutate(lead)} />
+                <span className="font-mono" style={{ fontSize: 10, color: "var(--ink-4)" }}>{formatAgo(lead.created_at)}</span>
               </div>
             </div>
           );
         })}
-        {!isLoading && !data?.items.length && (
-          <p className="text-center text-gray-400 py-8">Nenhum lead ainda.</p>
+        {isLoading && (
+          <p className="text-center font-mono" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase", padding: "32px 0" }}>
+            Carregando...
+          </p>
+        )}
+        {!isLoading && !items.length && (
+          <EmptyState hasFilters={hasFilters} />
         )}
       </div>
+    </div>
+  );
+}
+
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <div className="text-center" style={{ padding: "56px 16px" }}>
+      <p className="font-mono mb-2" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+        · · ·
+      </p>
+      <p style={{ fontSize: 13, color: "var(--ink-3)" }}>
+        {hasFilters ? "Nenhum lead encontrado com esses filtros." : "Nenhum lead ainda."}
+      </p>
     </div>
   );
 }
