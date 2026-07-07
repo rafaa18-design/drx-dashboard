@@ -86,24 +86,15 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         {/* Logo */}
-        <div className="px-6 py-6" style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
-          <div className="flex items-center gap-2.5 mb-1">
-            <div style={{
-              width: 28, height: 28, borderRadius: 8,
-              background: "var(--accent)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-              boxShadow: "0 0 0 4px rgba(26,86,219,0.2)",
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-              </svg>
-            </div>
-            <span className="font-display font-bold" style={{ fontSize: 16, color: "#FFFFFF", letterSpacing: "-0.02em" }}>
-              DRX Advogados
-            </span>
+        <div className="px-6 py-7 flex flex-col items-center" style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
+          <div style={{ height: 38, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+            <img
+              src="/logo-oficial.png"
+              alt="DR&X"
+              style={{ height: 96, width: "auto", display: "block", filter: "brightness(0) invert(1)" }}
+            />
           </div>
-          <p className="font-mono" style={{ fontSize: 9, color: "var(--sidebar-text)", letterSpacing: "0.2em", textTransform: "uppercase", marginLeft: 36 }}>
+          <p className="font-mono text-center" style={{ fontSize: 9, color: "var(--sidebar-text)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
             Sistema Comercial
           </p>
         </div>

@@ -58,12 +58,25 @@ export function PageHero({
 
       <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 px-6 sm:px-8 py-7">
         <div>
-          <p
-            className="font-mono mb-2"
-            style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: "0.22em", textTransform: "uppercase" }}
-          >
-            {label}
-          </p>
+          <div className="flex items-center gap-2.5 mb-3">
+            <div style={{ height: 20, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img
+                src="/logo-oficial.png"
+                alt="DR&X"
+                style={{
+                  height: 50, width: "auto", display: "block",
+                  filter: "brightness(0) invert(1)", opacity: 0.9,
+                }}
+              />
+            </div>
+            <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.25)" }} />
+            <p
+              className="font-mono"
+              style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: "0.22em", textTransform: "uppercase" }}
+            >
+              {label}
+            </p>
+          </div>
           <h1
             className="font-display font-bold text-2xl sm:text-3xl"
             style={{ color: "#FFFFFF", letterSpacing: "-0.02em", lineHeight: 1.05 }}

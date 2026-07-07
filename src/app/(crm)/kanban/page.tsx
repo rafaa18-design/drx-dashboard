@@ -24,6 +24,27 @@ const POST_MEETING = [
 
 const ALL_COLS = [...PRE_MEETING, ...POST_MEETING];
 
+const GROUPS = [
+  {
+    id: "pre",
+    title: "Antes da reunião",
+    desc: "Tiago (IA) atende e qualifica",
+    cols: PRE_MEETING,
+    startIndex: 0,
+    tint: "var(--accent-soft)",
+    edge: "var(--accent)",
+  },
+  {
+    id: "post",
+    title: "Depois da reunião",
+    desc: "Resultado do atendimento",
+    cols: POST_MEETING,
+    startIndex: PRE_MEETING.length,
+    tint: "rgba(15,122,92,0.06)",
+    edge: "var(--ok)",
+  },
+] as const;
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatAgo(dateStr: string): string {
@@ -38,11 +59,11 @@ function formatAgo(dateStr: string): string {
 }
 
 const LEVEL_LABELS: Record<string, string> = {
-  hot:          "Hot",
-  warm:         "Warm",
-  cold:         "Cold",
+  hot:          "Quente",
+  warm:         "Morno",
+  cold:         "Frio",
   auto_meeting: "Auto",
-  disqualified: "Desqualificado",
+  disqualified: "Desqualif.",
 };
 
 function scoreStyle(level: string | null): { bg: string; text: string } {
@@ -79,11 +100,13 @@ function KanbanCard({
   lead,
   onDragStart,
   onToggleAI,
+  onOpenMove,
   toggling,
 }: {
   lead: Lead;
   onDragStart: (e: React.DragEvent, lead: Lead) => void;
   onToggleAI: (lead: Lead) => void;
+  onOpenMove: (e: React.MouseEvent, lead: Lead) => void;
   toggling: boolean;
 }) {
   const sc  = scoreStyle(lead.qualification_level);
@@ -196,6 +219,35 @@ function KanbanCard({
           {formatAgo(lead.created_at)}
         </span>
       </div>
+
+      {/* Row 4: mover etapa sem precisar arrastar */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onOpenMove(e, lead); }}
+        className="font-mono"
+        style={{
+          width: "100%", marginTop: 10, padding: "5px 0",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          fontSize: 8.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+          color: "var(--ink-3)", background: "transparent",
+          border: "1px solid var(--line)", cursor: "pointer",
+          transition: "border-color 0.15s, color 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          b.style.borderColor = "var(--accent)";
+          b.style.color = "var(--accent)";
+        }}
+        onMouseLeave={(e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          b.style.borderColor = "var(--line)";
+          b.style.color = "var(--ink-3)";
+        }}
+      >
+        Mover etapa
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -203,15 +255,16 @@ function KanbanCard({
 // ─── KanbanColumn ────────────────────────────────────────────────────────────
 
 function KanbanColumn({
-  colKey, label, sub, bar, leads,
-  onDragStart, onDrop, onToggleAI, togglingIds,
+  colKey, num, label, sub, bar, leads,
+  onDragStart, onDrop, onToggleAI, onOpenMove, togglingIds,
   isOver, onDragOver, onDragLeave,
 }: {
-  colKey: string; label: string; sub: string; bar: string;
+  colKey: string; num: string; label: string; sub: string; bar: string;
   leads: Lead[];
   onDragStart: (e: React.DragEvent, lead: Lead) => void;
   onDrop: (e: React.DragEvent, status: string) => void;
   onToggleAI: (lead: Lead) => void;
+  onOpenMove: (e: React.MouseEvent, lead: Lead) => void;
   togglingIds: Set<string>;
   isOver: boolean;
   onDragOver: (e: React.DragEvent) => void;
@@ -224,9 +277,14 @@ function KanbanColumn({
         <div style={{ height: 3, background: bar, marginBottom: 10 }} />
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "0 2px" }}>
           <div>
-            <p className="font-display" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-              {label}
-            </p>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+              <span className="font-mono" style={{ fontSize: 9, fontWeight: 700, color: bar, letterSpacing: "0.1em" }}>
+                {num}
+              </span>
+              <p className="font-display" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+                {label}
+              </p>
+            </div>
             <p style={{ fontSize: 10, color: "var(--ink-3)", fontFamily: "JetBrains Mono", marginTop: 1 }}>
               {sub}
             </p>
@@ -262,7 +320,7 @@ function KanbanColumn({
             padding: "18px 8px", textAlign: "center",
           }}>
             <p style={{ fontSize: 9, color: "var(--ink-4)", fontFamily: "JetBrains Mono", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-              sem leads
+              arraste para cá
             </p>
           </div>
         )}
@@ -272,6 +330,7 @@ function KanbanColumn({
             lead={lead}
             onDragStart={onDragStart}
             onToggleAI={onToggleAI}
+            onOpenMove={onOpenMove}
             toggling={togglingIds.has(lead.id)}
           />
         ))}
@@ -286,6 +345,9 @@ export default function KanbanPage() {
   const qc = useQueryClient();
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [levelFilter, setLevelFilter] = useState("");
+  const [moveMenu, setMoveMenu] = useState<{ lead: Lead; x: number; y: number } | null>(null);
   const dragLead = useRef<Lead | null>(null);
 
   // Fetch all leads (high limit for kanban)
@@ -297,6 +359,18 @@ export default function KanbanPage() {
   });
 
   const leads = (data?.items ?? []) as Lead[];
+
+  // Filtro de busca + nível
+  const q = search.trim().toLowerCase();
+  const qDigits = q.replace(/\D/g, "");
+  const filtered = leads.filter((l) => {
+    if (levelFilter && l.qualification_level !== levelFilter) return false;
+    if (!q) return true;
+    const nameHit = (l.name ?? "").toLowerCase().includes(q);
+    const phoneHit = qDigits.length > 0 && l.phone.replace(/\D/g, "").includes(qDigits);
+    return nameHit || phoneHit;
+  });
+  const hasFilter = q.length > 0 || levelFilter !== "";
 
   // Move lead to new column
   const moveStatus = useMutation({
@@ -357,9 +431,20 @@ export default function KanbanPage() {
     moveStatus.mutate({ id: lead.id, status });
   };
 
+  // Menu "Mover etapa" — posição fixa calculada a partir do botão clicado
+  const openMoveMenu = (e: React.MouseEvent, lead: Lead) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const menuH = ALL_COLS.length * 34 + 44;
+    const y = rect.bottom + menuH > window.innerHeight - 12
+      ? Math.max(12, rect.top - menuH - 6)
+      : rect.bottom + 6;
+    const x = Math.min(rect.left, window.innerWidth - 226);
+    setMoveMenu({ lead, x, y });
+  };
+
   // Group leads by status
   const grouped = ALL_COLS.reduce<Record<string, Lead[]>>((acc, col) => {
-    acc[col.key] = leads.filter((l) => l.commercial_status === col.key);
+    acc[col.key] = filtered.filter((l) => l.commercial_status === col.key);
     return acc;
   }, {});
 
@@ -381,11 +466,15 @@ export default function KanbanPage() {
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 112px)" }}>
 
       {/* ── Page header ─────────────────────────────────────── */}
-      <div style={{ marginBottom: 24, flexShrink: 0 }}>
+      <div style={{ marginBottom: 18, flexShrink: 0 }}>
         <PageHero
           label="Pipeline comercial"
           title="Funil de Leads"
-          subtitle={`${leads.length} lead${leads.length !== 1 ? "s" : ""} · arraste os cards entre as colunas`}
+          subtitle={
+            hasFilter
+              ? `${filtered.length} de ${leads.length} leads no filtro`
+              : `${leads.length} lead${leads.length !== 1 ? "s" : ""} · arraste os cards ou use "mover etapa"`
+          }
           stats={[
             { value: preMeetingCount, label: "Em pipeline" },
             { value: postMeetingCount, label: "Pós-reunião" },
@@ -394,69 +483,188 @@ export default function KanbanPage() {
         />
       </div>
 
+      {/* ── Toolbar: busca + filtro de nível ────────────────── */}
+      <div className="flex flex-wrap items-center gap-3" style={{ marginBottom: 16, flexShrink: 0 }}>
+        <input
+          className="filter-input"
+          placeholder="Buscar por nome ou telefone…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 260, maxWidth: "100%" }}
+        />
+        <select
+          className="filter-select"
+          value={levelFilter}
+          onChange={(e) => setLevelFilter(e.target.value)}
+        >
+          <option value="">Todos os níveis</option>
+          <option value="hot">Quente</option>
+          <option value="warm">Morno</option>
+          <option value="cold">Frio</option>
+          <option value="auto_meeting">Auto-agendado</option>
+          <option value="disqualified">Desqualificado</option>
+        </select>
+        {hasFilter && (
+          <button
+            onClick={() => { setSearch(""); setLevelFilter(""); }}
+            className="font-mono"
+            style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+              color: "var(--danger)", background: "rgba(179,38,30,0.07)",
+              border: "1px solid rgba(179,38,30,0.25)",
+              padding: "8px 12px", cursor: "pointer",
+            }}
+          >
+            Limpar filtros
+          </button>
+        )}
+      </div>
+
       {/* ── Board ───────────────────────────────────────────── */}
       <div style={{ flex: 1, overflowX: "auto", overflowY: "hidden", paddingBottom: 12 }}>
         <div style={{
-          display: "flex", gap: 14, height: "100%",
-          alignItems: "flex-start", minWidth: "max-content",
+          display: "flex", gap: 18, height: "100%",
+          alignItems: "stretch", minWidth: "max-content",
         }}>
+          {GROUPS.map((group, gi) => (
+            <div key={group.id} style={{ display: "flex", height: "100%" }}>
 
-          {/* Pre-meeting columns */}
-          {PRE_MEETING.map((col) => (
-            <KanbanColumn
-              key={col.key}
-              colKey={col.key}
-              label={col.label}
-              sub={col.sub}
-              bar={col.bar}
-              leads={grouped[col.key] ?? []}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onToggleAI={(lead) => toggleAI.mutate(lead)}
-              togglingIds={togglingIds}
-              isOver={dragOverCol === col.key}
-              onDragOver={(e) => handleDragOver(e, col.key)}
-              onDragLeave={() => setDragOverCol(null)}
-            />
-          ))}
+              {/* Divisor entre grupos */}
+              {gi > 0 && (
+                <div style={{
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  padding: "0 4px", marginRight: 18, flexShrink: 0, height: "100%",
+                }}>
+                  <div style={{ flex: 1, width: 1, background: "var(--line)" }} />
+                  <span style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 26, height: 26, margin: "8px 0",
+                    border: "1px solid var(--line)", borderRadius: "50%",
+                    background: "var(--surface)", color: "var(--ink-3)",
+                  }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </span>
+                  <div style={{ flex: 1, width: 1, background: "var(--line)" }} />
+                </div>
+              )}
 
-          {/* Divider */}
-          <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center",
-            padding: "16px 6px", gap: 8, flexShrink: 0, height: "100%",
-          }}>
-            <div style={{ flex: 1, width: 1, background: "var(--line)" }} />
-            <span className="font-mono" style={{
-              fontSize: 8, fontWeight: 700,
-              letterSpacing: "0.2em", textTransform: "uppercase",
-              color: "var(--ink-4)", writingMode: "vertical-lr",
-              transform: "rotate(180deg)",
-            }}>
-              pós-reunião · {postMeetingCount}
-            </span>
-            <div style={{ flex: 1, width: 1, background: "var(--line)" }} />
-          </div>
+              <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+                {/* Cabeçalho do grupo — o cliente entende a jornada */}
+                <div style={{
+                  display: "flex", alignItems: "baseline", gap: 8,
+                  padding: "6px 12px", marginBottom: 14,
+                  background: group.tint,
+                  borderLeft: `2px solid ${group.edge}`,
+                }}>
+                  <span className="font-mono" style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: "0.18em",
+                    textTransform: "uppercase", color: group.edge,
+                  }}>
+                    {group.title}
+                  </span>
+                  <span className="font-mono" style={{ fontSize: 9, color: "var(--ink-4)", letterSpacing: "0.06em" }}>
+                    · {group.desc}
+                  </span>
+                </div>
 
-          {/* Post-meeting columns */}
-          {POST_MEETING.map((col) => (
-            <KanbanColumn
-              key={col.key}
-              colKey={col.key}
-              label={col.label}
-              sub={col.sub}
-              bar={col.bar}
-              leads={grouped[col.key] ?? []}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onToggleAI={(lead) => toggleAI.mutate(lead)}
-              togglingIds={togglingIds}
-              isOver={dragOverCol === col.key}
-              onDragOver={(e) => handleDragOver(e, col.key)}
-              onDragLeave={() => setDragOverCol(null)}
-            />
+                {/* Colunas do grupo */}
+                <div style={{ display: "flex", gap: 14, flex: 1, minHeight: 0, alignItems: "stretch" }}>
+                  {group.cols.map((col, ci) => (
+                    <KanbanColumn
+                      key={col.key}
+                      colKey={col.key}
+                      num={String(group.startIndex + ci + 1).padStart(2, "0")}
+                      label={col.label}
+                      sub={col.sub}
+                      bar={col.bar}
+                      leads={grouped[col.key] ?? []}
+                      onDragStart={handleDragStart}
+                      onDrop={handleDrop}
+                      onToggleAI={(lead) => toggleAI.mutate(lead)}
+                      onOpenMove={openMoveMenu}
+                      togglingIds={togglingIds}
+                      isOver={dragOverCol === col.key}
+                      onDragOver={(e) => handleDragOver(e, col.key)}
+                      onDragLeave={() => setDragOverCol(null)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
+
+      {/* ── Menu "Mover etapa" ──────────────────────────────── */}
+      {moveMenu && (
+        <>
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 90 }}
+            onClick={() => setMoveMenu(null)}
+          />
+          <div
+            className="animate-fadeIn"
+            style={{
+              position: "fixed", left: moveMenu.x, top: moveMenu.y, zIndex: 91,
+              width: 214, background: "var(--surface)",
+              border: "1px solid var(--line)",
+              boxShadow: "0 14px 36px rgba(15,27,43,0.16)",
+            }}
+          >
+            <p className="font-mono" style={{
+              fontSize: 8.5, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase",
+              color: "var(--ink-4)", padding: "9px 12px 7px",
+              borderBottom: "1px solid var(--line-soft)",
+            }}>
+              Mover para
+            </p>
+            {ALL_COLS.map((c, i) => {
+              const current = moveMenu.lead.commercial_status === c.key;
+              return (
+                <button
+                  key={c.key}
+                  disabled={current}
+                  onClick={() => {
+                    moveStatus.mutate({ id: moveMenu.lead.id, status: c.key });
+                    setMoveMenu(null);
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 9,
+                    width: "100%", padding: "8px 12px", textAlign: "left",
+                    background: current ? "var(--accent-soft)" : "transparent",
+                    border: "none",
+                    cursor: current ? "default" : "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!current) (e.currentTarget as HTMLButtonElement).style.background = "var(--line-soft)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!current) (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                  }}
+                >
+                  <span style={{ width: 8, height: 8, background: c.bar, flexShrink: 0 }} />
+                  <span className="font-mono" style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-4)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span style={{ fontSize: 12.5, color: "var(--ink)", fontWeight: current ? 600 : 400 }}>
+                    {c.label}
+                  </span>
+                  {current && (
+                    <span className="font-mono" style={{
+                      marginLeft: "auto", fontSize: 8, fontWeight: 700,
+                      letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent)",
+                    }}>
+                      atual
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
