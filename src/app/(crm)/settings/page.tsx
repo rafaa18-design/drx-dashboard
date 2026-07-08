@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { getUsername } from "@/lib/auth";
-import { PageHero } from "@/components/PageHero";
 import type { Lawyer } from "@/types";
 
 function initials(text: string): string {
@@ -24,16 +23,14 @@ function GoogleResultBanner() {
     <div
       className="drx-fadeup mb-6"
       style={{
-        padding: "12px 16px",
+        padding: "12px 16px", borderRadius: "var(--r-md)",
         background: ok ? "rgba(15,122,92,0.08)" : "rgba(179,38,30,0.08)",
         border: `1px solid ${ok ? "rgba(15,122,92,0.3)" : "rgba(179,38,30,0.3)"}`,
         color: ok ? "var(--ok)" : "var(--danger)",
         fontSize: 13,
       }}
     >
-      {ok
-        ? "✓ Google Calendar conectado com sucesso."
-        : `Não foi possível conectar o Google Calendar (${params.get("reason") ?? "erro desconhecido"}). Tente novamente.`}
+      {ok ? "✓ Google Calendar conectado com sucesso." : `Não foi possível conectar o Google Calendar (${params.get("reason") ?? "erro desconhecido"}). Tente novamente.`}
     </div>
   );
 }
@@ -54,30 +51,21 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
   });
 
   return (
-    <div className="drx-fadeup" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+    <div className="drx-fadeup dc-card">
       <div className="flex items-center gap-4 p-4 sm:p-5">
-        <div
-          className="font-display font-bold flex items-center justify-center flex-shrink-0"
-          style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 15 }}
-        >
+        <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 15 }}>
           {initials(lawyer.name)}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{lawyer.name}</p>
-            {lawyer.is_default && (
-              <span className="font-mono" style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)", background: "var(--accent-soft)", padding: "2px 7px" }}>
-                padrão
-              </span>
-            )}
+            {lawyer.is_default && <span className="dc-count-pill">padrão</span>}
           </div>
-          <p className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>{lawyer.email}</p>
+          <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{lawyer.email}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="font-mono flex items-center gap-2" style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-            padding: "5px 10px",
+          <span className="badge-pill" style={{
             color: lawyer.google_connected ? "var(--ok)" : "var(--ink-4)",
             background: lawyer.google_connected ? "rgba(15,122,92,0.08)" : "var(--bg)",
             border: `1px solid ${lawyer.google_connected ? "rgba(15,122,92,0.25)" : "var(--line)"}`,
@@ -91,8 +79,7 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
               <button
                 onClick={() => disconnect.mutate()}
                 disabled={disconnect.isPending}
-                className="font-mono"
-                style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--danger)", border: "1px solid rgba(179,38,30,0.3)", background: "rgba(179,38,30,0.06)", padding: "8px 12px", cursor: "pointer" }}
+                style={{ fontSize: 13, fontWeight: 600, color: "var(--danger)", border: "1px solid rgba(179,38,30,0.3)", background: "rgba(179,38,30,0.06)", borderRadius: "var(--r-md)", padding: "8px 14px", cursor: "pointer" }}
               >
                 Desconectar
               </button>
@@ -100,8 +87,7 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
               <button
                 onClick={() => connect.mutate()}
                 disabled={connect.isPending}
-                className="font-mono"
-                style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#FFFFFF", background: "var(--ink)", padding: "8px 14px", cursor: "pointer", border: "none" }}
+                style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)", borderRadius: "var(--r-md)", padding: "8px 16px", cursor: "pointer", border: "none" }}
               >
                 {connect.isPending ? "Redirecionando..." : "Conectar Google Calendar"}
               </button>
@@ -115,37 +101,30 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
 
 function SettingsContent() {
   const username = useState(getUsername)[0];
-  const { data: lawyers, isLoading } = useQuery({
-    queryKey: ["lawyers"],
-    queryFn: api.getLawyers,
-  });
+  const { data: lawyers, isLoading } = useQuery({ queryKey: ["lawyers"], queryFn: api.getLawyers });
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <PageHero label="Configurações" title="Advogados & Agenda" subtitle="Conecte o Google Calendar de cada advogado" />
+      <p style={{ fontSize: 14, color: "var(--ink-3)" }}>
+        Advogados & agenda · conecte o Google Calendar de cada um
+      </p>
 
-      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ maxWidth: 860 }}>
         <Suspense fallback={null}>
           <GoogleResultBanner />
         </Suspense>
 
-        {isLoading && (
-          <p className="font-mono text-center" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase", padding: "32px 0" }}>
-            Carregando...
-          </p>
-        )}
+        {isLoading && <p className="text-center" style={{ fontSize: 13, color: "var(--ink-4)", padding: "32px 0" }}>Carregando...</p>}
 
         {!isLoading && !lawyers?.length && (
-          <div style={{ textAlign: "center", padding: "56px 16px", background: "var(--surface)", border: "1px solid var(--line)" }}>
+          <div className="dc-card" style={{ textAlign: "center", padding: "56px 16px" }}>
             <p style={{ fontSize: 13, color: "var(--ink-3)" }}>Nenhum advogado cadastrado ainda.</p>
-            <p style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 6 }}>Cadastre com scripts/seed_lawyer.py no backend.</p>
+            <p style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 6 }}>Cadastre com scripts/seed_lawyer.py no backend.</p>
           </div>
         )}
 
         <div className="space-y-3">
-          {lawyers?.map((lw) => (
-            <LawyerCard key={lw.id} lawyer={lw} isMe={lw.username === username} />
-          ))}
+          {lawyers?.map((lw) => <LawyerCard key={lw.id} lawyer={lw} isMe={lw.username === username} />)}
         </div>
       </div>
     </div>

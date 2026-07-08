@@ -6,315 +6,151 @@ import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername]     = useState("");
-  const [password, setPassword]     = useState("");
-  const [showPassword, setShowPass] = useState(false);
-  const [error, setError]           = useState("");
-  const [loading, setLoading]       = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
     try {
       const { access_token } = await api.login(username, password);
       localStorage.setItem("drx_token", access_token);
       router.push("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Usuário ou senha incorretos.");
+    } catch {
+      setError("Usuário ou senha inválida.");
     } finally {
       setLoading(false);
     }
   }
 
+  const inputClass = "w-full text-sm outline-none transition";
+
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: "var(--bg)" }}
-    >
-      {/* ── Painel esquerdo — identidade ─────────────────── */}
-      <div
-        className="hidden lg:flex flex-col w-1/2 p-16 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(160deg, #0F1B2B 0%, #16283D 55%, #273F5C 100%)",
-          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)",
-        }}
-      >
-        {/* Textura — grade de pontos sutil */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0)",
-            backgroundSize: "26px 26px",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Watermark tipográfico — eco do "&" da marca */}
-        <div
-          aria-hidden
-          className="font-display font-bold"
-          style={{
-            position: "absolute",
-            right: -60,
-            bottom: -120,
-            fontSize: 480,
-            lineHeight: 1,
-            color: "rgba(255,255,255,0.035)",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        >
-          &amp;
-        </div>
-
-        {/* Linha de luz sutil no topo */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
-          }}
-        />
-
-        {/* Cantos — moldura sutil tipo selo/plaqueta */}
-        {[
-          { top: 40, left: 40, borderTop: "1px solid rgba(255,255,255,0.22)", borderLeft: "1px solid rgba(255,255,255,0.22)" },
-          { top: 40, right: 40, borderTop: "1px solid rgba(255,255,255,0.22)", borderRight: "1px solid rgba(255,255,255,0.22)" },
-          { bottom: 40, left: 40, borderBottom: "1px solid rgba(255,255,255,0.22)", borderLeft: "1px solid rgba(255,255,255,0.22)" },
-          { bottom: 40, right: 40, borderBottom: "1px solid rgba(255,255,255,0.22)", borderRight: "1px solid rgba(255,255,255,0.22)" },
-        ].map((pos, i) => (
-          <div key={i} style={{ position: "absolute", width: 18, height: 18, pointerEvents: "none", ...pos }} />
-        ))}
-
-        {/* Identidade — lockup horizontal: logo + nome colado ao lado */}
-        <div
-          className="flex-1 flex items-center justify-center"
-          style={{ position: "relative", zIndex: 1, transform: "translateX(-48px)" }}
-        >
-          <img
-            src="/logo-oficial.png"
-            alt="DR&X"
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg)" }}>
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div
+            className="flex items-center justify-center"
             style={{
-              height: 260,
-              width: "auto",
-              display: "block",
-              filter: "brightness(0) invert(1) drop-shadow(0 6px 20px rgba(0,0,0,0.4))",
-            }}
-          />
-          <div style={{ marginLeft: 20, textAlign: "left" }}>
-            <p
-              className="font-display font-bold"
-              style={{ fontSize: 26, color: "#FFFFFF", letterSpacing: "-0.01em", lineHeight: 1.2, whiteSpace: "nowrap" }}
-            >
-              Dias, Rocha &amp; Xavier
-            </p>
-            <p
-              className="font-mono"
-              style={{ marginTop: 6, fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.26em", textTransform: "uppercase" }}
-            >
-              Advogados
-            </p>
-          </div>
-        </div>
-
-        {/* Versão */}
-        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center" }}>
-          <p
-            className="font-mono text-center"
-            style={{
-              display: "inline-block",
-              paddingTop: 14,
-              borderTop: "1px solid rgba(255,255,255,0.22)",
-              fontSize: 9,
-              color: "rgba(255,255,255,0.35)",
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
+              width: 100, height: 100, borderRadius: "50%", background: "var(--ink)",
+              boxShadow: "0 8px 24px rgba(15,27,43,0.18)",
             }}
           >
-            Asani × DRX · v1.1 · 2026
-          </p>
+            <div style={{ height: 34, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img
+                src="/logo-oficial.png"
+                alt="DR&X"
+                style={{ height: 85, width: "auto", display: "block", filter: "brightness(0) invert(1)" }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* ── Painel direito — login ────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center px-8">
-        <div className="w-full max-w-sm animate-fadeIn">
+        {/* Card */}
+        <div className="dc-card" style={{ boxShadow: "0 1px 3px rgba(15,27,43,0.06)" }}>
+          <form onSubmit={handleSubmit} className="dc-card-pad space-y-5">
+            <div className="text-center mb-2">
+              <h1 className="font-display font-semibold" style={{ fontSize: 20, color: "var(--ink)" }}>
+                Dias, Rocha &amp; Xavier
+              </h1>
+              <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 2 }}>Acesso ao sistema comercial</p>
+            </div>
 
-          {/* Header mobile */}
-          <div className="lg:hidden mb-10 flex items-center gap-3">
-            <img src="/logo-oficial.png" alt="DR&X" style={{ height: 34, width: "auto", display: "block" }} />
-            <span
-              className="font-mono"
-              style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.14em", textTransform: "uppercase" }}
-            >
-              Dias, Rocha &amp; Xavier
-            </span>
-          </div>
-
-          {/* Título do form */}
-          <div className="mb-8">
-            <p
-              className="font-mono mb-2"
-              style={{ fontSize: 10, color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700 }}
-            >
-              Acesso restrito
-            </p>
-            <h2
-              className="font-display font-bold"
-              style={{ fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em" }}
-            >
-              Entrar no sistema
-            </h2>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label
-                className="font-mono block mb-2"
-                style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700 }}
-              >
+              <label htmlFor="username" className="block mb-1.5" style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)" }}>
                 Usuário
               </label>
               <input
+                id="username"
                 type="text"
+                autoComplete="username"
+                required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
                 placeholder="seu usuário"
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--line)",
-                  color: "var(--ink)",
-                  fontFamily: "DM Sans, sans-serif",
-                  borderRadius: 0,
-                  transition: "border-color 0.15s, box-shadow 0.15s",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "var(--accent)";
-                  e.target.style.boxShadow = "0 0 0 3px var(--accent-soft)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "var(--line)";
-                  e.target.style.boxShadow = "none";
-                }}
+                className={`${inputClass} filter-input`}
               />
             </div>
 
             <div>
-              <label
-                className="font-mono block mb-2"
-                style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700 }}
-              >
+              <label htmlFor="password" className="block mb-1.5" style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)" }}>
                 Senha
               </label>
               <div className="relative">
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 text-sm outline-none pr-11"
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--line)",
-                    color: "var(--ink)",
-                    fontFamily: "DM Sans, sans-serif",
-                    borderRadius: 0,
-                    transition: "border-color 0.15s, box-shadow 0.15s",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "var(--accent)";
-                    e.target.style.boxShadow = "0 0 0 3px var(--accent-soft)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "var(--line)";
-                    e.target.style.boxShadow = "none";
-                  }}
+                  className={`${inputClass} filter-input`}
+                  style={{ paddingRight: 40 }}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPass((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-4)", padding: 4, lineHeight: 0 }}
+                  onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
-                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  style={{
+                    position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                    color: "var(--ink-4)", background: "none", border: "none", cursor: "pointer", display: "flex",
+                  }}
                 >
-                  {showPassword ? (
-                    // Olho fechado
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                      <line x1="1" y1="1" x2="23" y2="23"/>
-                    </svg>
-                  ) : (
-                    // Olho aberto
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  )}
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <p
-                className="font-mono flex items-center gap-2"
-                style={{ fontSize: 11, color: "var(--danger)", letterSpacing: "0.02em" }}
-              >
-                <span style={{ display: "inline-block", width: 4, height: 4, background: "var(--danger)", flexShrink: 0 }} />
-                {error}
-              </p>
+              <p style={{ fontSize: 13, color: "var(--danger)" }}>{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 font-medium text-sm"
               style={{
-                background: loading ? "var(--ink-3)" : "var(--ink)",
-                color: "white",
-                borderRadius: 0,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
-                transition: "background 0.15s, box-shadow 0.15s",
-                boxShadow: "0 1px 2px rgba(15,27,43,0.1)",
+                width: "100%", borderRadius: "var(--r-md)", padding: "11px 0",
+                fontSize: 14, fontWeight: 600, color: "#FFFFFF",
+                background: loading ? "var(--ink-4)" : "var(--ink)",
+                border: "none", cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: "0 2px 6px rgba(15,27,43,0.18)",
               }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = "var(--accent)";
-                  e.currentTarget.style.boxShadow = "0 8px 20px -6px rgba(15,27,43,0.4)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = loading ? "var(--ink-3)" : "var(--ink)";
-                e.currentTarget.style.boxShadow = "0 1px 2px rgba(15,27,43,0.1)";
-              }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = "var(--accent)"; }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = "var(--ink)"; }}
             >
-              {loading ? "Entrando..." : "Entrar no sistema"}
+              {loading ? "Entrando..." : "Entrar"}
             </button>
           </form>
-
-          <p
-            className="font-mono mt-8 flex items-center gap-2"
-            style={{ fontSize: 9, color: "var(--ink-4)", letterSpacing: "0.14em", textTransform: "uppercase" }}
-          >
-            <span style={{ display: "inline-block", width: 12, height: 1, background: "var(--line)" }} />
-            Acesso autorizado apenas para equipe DRX
-          </p>
         </div>
+
+        <p className="mt-6 text-center" style={{ fontSize: 12, color: "var(--ink-4)" }}>
+          DR&amp;X Advogados &copy; {new Date().getFullYear()}
+        </p>
       </div>
     </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+    </svg>
   );
 }

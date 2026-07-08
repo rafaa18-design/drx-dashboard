@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { PageHero } from "@/components/PageHero";
 import type { Conversation } from "@/types";
 
 function initials(text: string): string {
@@ -41,11 +40,10 @@ function ConversationCard({ conv }: { conv: Conversation }) {
   const waiting = formatWaiting(conv.last_message_at);
 
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+    <div className="dc-card">
       <div className="flex items-start gap-4 p-4 sm:p-5">
-        {/* Monograma */}
         <div
-          className="font-display font-bold flex items-center justify-center flex-shrink-0"
+          className="font-display font-semibold flex items-center justify-center flex-shrink-0"
           style={{ width: 42, height: 42, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 14 }}
         >
           {initials(name)}
@@ -53,11 +51,11 @@ function ConversationCard({ conv }: { conv: Conversation }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-            <Link href={`/leads/${conv.lead_id}`} style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>
+            <Link href={`/leads/${conv.lead_id}`} style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", textDecoration: "none" }}>
               {name}
             </Link>
             {conv.lead_phone && conv.lead_name && (
-              <span className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>{conv.lead_phone}</span>
+              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{conv.lead_phone}</span>
             )}
           </div>
           <p style={{ fontSize: 13, color: "var(--ink-3)" }}>
@@ -65,39 +63,21 @@ function ConversationCard({ conv }: { conv: Conversation }) {
           </p>
         </div>
 
-        {/* Badge de espera */}
-        <span
-          className="font-mono flex-shrink-0"
-          style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-            padding: "4px 10px",
-            color: waiting.urgent ? "var(--danger)" : "var(--warn)",
-            background: waiting.urgent ? "rgba(179,38,30,0.08)" : "rgba(180,83,9,0.08)",
-          }}
-        >
+        <span className="badge-pill flex-shrink-0" style={{ color: waiting.urgent ? "var(--danger)" : "var(--warn)", background: waiting.urgent ? "rgba(179,38,30,0.08)" : "rgba(180,83,9,0.08)" }}>
           {waiting.text}
         </span>
       </div>
 
-      {/* Ações */}
       <div style={{ borderTop: "1px solid var(--line-soft)" }} className="px-4 sm:px-5 py-3">
         {!replying ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setReplying(true)}
-              className="font-mono"
-              style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                color: "#FFFFFF", background: "var(--ink)", padding: "7px 16px", cursor: "pointer",
-              }}
+              style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)", borderRadius: "var(--r-md)", border: "none", padding: "8px 18px", cursor: "pointer" }}
             >
               Responder
             </button>
-            <Link
-              href={`/leads/${conv.lead_id}`}
-              className="font-mono"
-              style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)" }}
-            >
+            <Link href={`/leads/${conv.lead_id}`} style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}>
               Ver lead →
             </Link>
           </div>
@@ -116,9 +96,9 @@ function ConversationCard({ conv }: { conv: Conversation }) {
               <button
                 onClick={() => message.trim() && reply.mutate(message.trim())}
                 disabled={!message.trim() || reply.isPending}
-                className="font-mono flex-1"
+                className="flex-1"
                 style={{
-                  fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                  fontSize: 13, fontWeight: 600, borderRadius: "var(--r-md)", border: "none",
                   color: "#FFFFFF", background: message.trim() ? "var(--ok)" : "var(--ink-4)",
                   padding: "0 16px", cursor: message.trim() ? "pointer" : "not-allowed",
                   opacity: reply.isPending ? 0.6 : 1,
@@ -128,11 +108,8 @@ function ConversationCard({ conv }: { conv: Conversation }) {
               </button>
               <button
                 onClick={() => { setReplying(false); setMessage(""); }}
-                className="font-mono flex-1"
-                style={{
-                  fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "var(--ink-3)", background: "var(--line-soft)", padding: "0 16px", cursor: "pointer",
-                }}
+                className="flex-1"
+                style={{ fontSize: 13, fontWeight: 500, borderRadius: "var(--r-md)", border: "none", color: "var(--ink-3)", background: "var(--line-soft)", padding: "0 16px", cursor: "pointer" }}
               >
                 Cancelar
               </button>
@@ -148,7 +125,7 @@ export default function ConversationsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["conversations", "human_required"],
     queryFn: () => api.getConversations("human_required"),
-    refetchInterval: 5_000, // polling a cada 5 segundos — sem WebSocket
+    refetchInterval: 5_000,
   });
 
   const items = (data?.items ?? []) as Conversation[];
@@ -156,30 +133,32 @@ export default function ConversationsPage() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <PageHero
-        label="Fila de atendimento"
-        title="Atendimento Humano"
-        subtitle="conversas escaladas pela IA · atualiza a cada 5s"
-        stats={[
-          { value: data?.total ?? "—", label: "Aguardando na fila" },
-          { value: isLoading ? "—" : urgentCount, label: "Esperando 15min+" },
-        ]}
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p style={{ fontSize: 14, color: "var(--ink-3)" }}>
+          Conversas escaladas pela IA · atualiza a cada 5s
+        </p>
+        <div className="flex items-center gap-4">
+          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
+            <b style={{ color: "var(--ink)" }}>{data?.total ?? 0}</b> na fila
+          </span>
+          {urgentCount > 0 && (
+            <span className="badge-pill" style={{ color: "var(--danger)", background: "rgba(179,38,30,0.08)" }}>
+              {urgentCount} esperando 15min+
+            </span>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-3">
-        {items.map((conv) => (
-          <ConversationCard key={conv.id} conv={conv} />
-        ))}
+        {items.map((conv) => <ConversationCard key={conv.id} conv={conv} />)}
 
         {isLoading && (
-          <p className="text-center font-mono" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase", padding: "32px 0" }}>
-            Carregando...
-          </p>
+          <p className="text-center" style={{ fontSize: 13, color: "var(--ink-4)", padding: "32px 0" }}>Carregando...</p>
         )}
 
         {!isLoading && !items.length && (
-          <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "56px 16px", textAlign: "center" }}>
-            <p className="font-mono mb-2" style={{ fontSize: 10, color: "var(--ok)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+          <div className="dc-card" style={{ padding: "56px 16px", textAlign: "center" }}>
+            <p className="badge-pill" style={{ display: "inline-flex", color: "var(--ok)", background: "rgba(15,122,92,0.08)", marginBottom: 10 }}>
               ✓ tudo em dia
             </p>
             <p style={{ fontSize: 13, color: "var(--ink-3)" }}>Nenhuma conversa aguardando atendimento.</p>

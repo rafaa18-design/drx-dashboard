@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { PageHero } from "@/components/PageHero";
 import { LeadsOverTime } from "@/components/charts/LeadsOverTime";
 import { SourceDonut } from "@/components/charts/SourceDonut";
 import { TemperatureBars } from "@/components/charts/TemperatureBars";
@@ -72,52 +71,29 @@ export default function DashboardPage() {
   const funnelTotal = funnel?.stages.reduce((a: number, s: { count: number }) => a + s.count, 0) || 1;
   const funnelMax = funnel?.stages.reduce((a: number, s: { count: number }) => Math.max(a, s.count), 0) || 1;
 
-  // Ordena os agendamentos do mais próximo para o mais distante
   const upcoming = [...(appts?.items ?? [])].sort(
     (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
   );
 
-  const today = new Date().toLocaleDateString("pt-BR", {
-    weekday: "long", day: "numeric", month: "long",
-  });
+  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-
-      {/* ── Painel-herói ──────────────────────────────────── */}
-      <PageHero
-        label={`Visão geral · ${today}`}
-        title="Dashboard"
-        stats={[
-          { value: kpis?.total_leads ?? "—", label: "Leads na base" },
-          { value: appts?.total ?? "—", label: "Reuniões marcadas" },
-          { value: kpis?.ai_active_leads ?? "—", label: "Leads com IA ativa" },
-        ]}
-      />
+    <div className="space-y-6 animate-fadeIn">
+      <p style={{ fontSize: 14, color: "var(--ink-3)" }}>
+        Visão geral do escritório · {today}
+      </p>
 
       {/* ── KPI Cards ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background: "var(--line)", border: "1px solid var(--line)" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard label="Leads este mês" value={kpis?.leads_this_month ?? "—"} hint={kpis ? `${kpis.total_leads} no total` : ""} />
+        <KPICard label="Agendamentos" value={kpis?.appointments_scheduled ?? "—"} hint="criados este mês" />
         <KPICard
-          code="01"
-          label="Leads este mês"
-          value={kpis?.leads_this_month ?? "—"}
-          hint={kpis ? `${kpis.total_leads} no total` : ""}
-        />
-        <KPICard
-          code="02"
-          label="Agendamentos"
-          value={kpis?.appointments_scheduled ?? "—"}
-          hint="criados este mês"
-        />
-        <KPICard
-          code="03"
           label="Taxa de conversão"
           value={kpis ? kpis.conversion_rate * 100 : "—"}
           format={(n) => `${n.toFixed(1)}%`}
           hint="leads fechados"
         />
         <KPICard
-          code="04"
           label="Taxa de escalação"
           value={kpis ? kpis.escalation_rate * 100 : "—"}
           format={(n) => `${n.toFixed(1)}%`}
@@ -126,30 +102,16 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Evolução de leads ─────────────────────────────── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-        <SectionHeader
-          code="G.01"
-          title="Evolução de leads"
-          side={
-            <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-              novos leads por dia
-            </span>
-          }
-        />
+      <div className="dc-card">
+        <SectionHeader title="Evolução de leads" subtitle="Novos leads por dia" />
         <LeadsOverTime leads={allLeads} />
       </div>
 
       {/* ── Agendamentos + Funil lado a lado ──────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-
-        {/* ── Próximos agendamentos ─────────────────────── */}
-        <div className="lg:col-span-3" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-          <SectionHeader code="P.02" title="Próximos agendamentos" side={
-            <Link
-              href="/appointments"
-              className="font-mono"
-              style={{ fontSize: 10, color: "var(--accent)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}
-            >
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
+        <div className="lg:col-span-3 dc-card">
+          <SectionHeader title="Próximos agendamentos" side={
+            <Link href="/appointments" style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>
               Ver todos →
             </Link>
           } />
@@ -169,72 +131,42 @@ export default function DashboardPage() {
                     className="row-hover flex items-center gap-4 px-4 sm:px-6 py-4"
                     style={{ borderTop: idx === 0 ? "none" : "1px solid var(--line-soft)" }}
                   >
-                    {/* Bloco de data */}
                     <div
                       className="flex-shrink-0 text-center"
                       style={{
-                        width: 52, padding: "8px 4px",
+                        width: 50, padding: "7px 4px", borderRadius: "var(--r-md)",
                         background: hoje ? "var(--ink)" : "var(--accent-soft)",
-                        border: hoje ? "1px solid var(--ink)" : "1px solid var(--accent-line)",
                       }}
                     >
-                      <p
-                        className="font-mono font-bold"
-                        style={{ fontSize: 19, lineHeight: 1, color: hoje ? "#FFFFFF" : "var(--accent)" }}
-                      >
+                      <p className="font-display font-semibold" style={{ fontSize: 18, lineHeight: 1, color: hoje ? "#FFFFFF" : "var(--accent)" }}>
                         {date.getDate().toString().padStart(2, "0")}
                       </p>
-                      <p
-                        className="font-mono"
-                        style={{
-                          fontSize: 9, marginTop: 3, letterSpacing: "0.1em", textTransform: "uppercase",
-                          color: hoje ? "rgba(255,255,255,0.65)" : "var(--ink-3)",
-                        }}
-                      >
+                      <p style={{ fontSize: 10, marginTop: 3, color: hoje ? "rgba(255,255,255,0.65)" : "var(--ink-3)" }}>
                         {hoje ? "hoje" : date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}
                       </p>
                     </div>
 
-                    {/* Monograma do lead */}
                     <div
-                      className="hidden sm:flex flex-shrink-0 items-center justify-center font-display font-bold"
-                      style={{
-                        width: 38, height: 38, borderRadius: "50%",
-                        background: "var(--ink)", color: "#FFFFFF", fontSize: 13, letterSpacing: "0.02em",
-                      }}
+                      className="hidden sm:flex flex-shrink-0 items-center justify-center font-display font-semibold"
+                      style={{ width: 38, height: 38, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 13 }}
                     >
                       {initials(name)}
                     </div>
 
-                    {/* Lead + horário */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
-                        {name}
-                      </p>
-                      <p className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 3 }}>
+                      <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{name}</p>
+                      <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
                         {WEEKDAY_TIME.format(date).replace(".,", " ·")} · {appt.duration_minutes} min
                       </p>
                     </div>
 
-                    {/* Ações */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {appt.google_meet_link && (
-                        <a
-                          href={appt.google_meet_link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn-meet hidden sm:inline-block"
-                        >
+                        <a href={appt.google_meet_link} target="_blank" rel="noreferrer" className="btn-meet hidden sm:inline-block">
                           Meet
                         </a>
                       )}
-                      <span
-                        className="font-mono"
-                        style={{
-                          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                          color: sc.text, background: sc.bg, padding: "4px 10px",
-                        }}
-                      >
+                      <span className="badge-pill" style={{ color: sc.text, background: sc.bg }}>
                         {APPT_STATUS_LABEL[appt.status] ?? appt.status}
                       </span>
                     </div>
@@ -245,17 +177,14 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── Funil de conversão ────────────────────────── */}
-        <div className="lg:col-span-2" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-          <SectionHeader code="P.05" title="Funil de conversão" side={
-            <span className="font-mono" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-              {funnelTotal} leads
-            </span>
+        <div className="lg:col-span-2 dc-card">
+          <SectionHeader title="Funil de conversão" side={
+            <span style={{ fontSize: 12, color: "var(--ink-4)" }}>{funnelTotal} leads</span>
           } />
 
-          <div className="px-4 sm:px-6 py-6">
+          <div className="dc-card-pad">
             {funnel?.stages.length ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {funnel.stages.map((s: { stage: string; count: number }, idx: number) => {
                   const pctOfTotal = Math.round((s.count / funnelTotal) * 100);
                   const barPct = Math.round((s.count / funnelMax) * 100);
@@ -263,33 +192,22 @@ export default function DashboardPage() {
                   const isLost = s.stage === "lost";
                   return (
                     <div key={s.stage}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="flex items-center gap-2.5">
-                          <span
-                            className="font-mono"
-                            style={{ fontSize: 9, color: "var(--ink-4)", fontWeight: 700 }}
-                          >
-                            {(idx + 1).toString().padStart(2, "0")}
-                          </span>
-                          <span style={{ fontSize: 13, color: "var(--ink-2)", fontWeight: 500 }}>
-                            {STAGE_LABELS[s.stage] ?? s.stage}
-                          </span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span style={{ fontSize: 13, color: "var(--ink-2)", fontWeight: 500 }}>
+                          {STAGE_LABELS[s.stage] ?? s.stage}
                         </span>
-                        <span className="font-mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>
+                        <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
                           <b style={{ color: "var(--ink)" }}>{s.count}</b>
                           <span style={{ color: "var(--ink-4)" }}> · {pctOfTotal}%</span>
                         </span>
                       </div>
-                      <div style={{ height: 7, background: "var(--line-soft)", overflow: "hidden" }}>
+                      <div style={{ height: 6, background: "var(--line-soft)", borderRadius: "var(--r-full)", overflow: "hidden" }}>
                         <div
                           style={{
                             height: "100%",
                             width: `${Math.max(barPct, s.count > 0 ? 4 : 0)}%`,
-                            background: isWon
-                              ? "var(--ok)"
-                              : isLost
-                                ? "var(--ink-4)"
-                                : "linear-gradient(90deg, var(--ink), var(--accent))",
+                            borderRadius: "var(--r-full)",
+                            background: isWon ? "var(--ok)" : isLost ? "var(--ink-4)" : "var(--accent)",
                             transition: "width 0.6s ease",
                           }}
                         />
@@ -297,15 +215,7 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-
-                <Link
-                  href="/kanban"
-                  className="font-mono inline-block"
-                  style={{
-                    marginTop: 4, fontSize: 10, color: "var(--accent)",
-                    letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700,
-                  }}
-                >
+                <Link href="/kanban" style={{ display: "inline-block", marginTop: 4, fontSize: 13, color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>
                   Abrir funil completo →
                 </Link>
               </div>
@@ -317,45 +227,20 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Origem + Temperatura da base ──────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <div className="lg:col-span-2" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-          <SectionHeader
-            code="G.02"
-            title="Origem dos leads"
-            side={
-              <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                por plataforma
-              </span>
-            }
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
+        <div className="lg:col-span-2 dc-card">
+          <SectionHeader title="Origem dos leads" subtitle="Por plataforma" />
           <SourceDonut leads={allLeads} />
         </div>
-
-        <div className="lg:col-span-3" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-          <SectionHeader
-            code="G.03"
-            title="Temperatura da base"
-            side={
-              <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                qualificação do Tiago (IA)
-              </span>
-            }
-          />
+        <div className="lg:col-span-3 dc-card">
+          <SectionHeader title="Temperatura da base" subtitle="Qualificação do Tiago (IA)" />
           <TemperatureBars leads={allLeads} />
         </div>
       </div>
 
       {/* ── Heatmap de chegada ────────────────────────────── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
-        <SectionHeader
-          code="G.04"
-          title="Quando os leads chegam"
-          side={
-            <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-              últimos 30 dias · dia × hora
-            </span>
-          }
-        />
+      <div className="dc-card">
+        <SectionHeader title="Quando os leads chegam" subtitle="Últimos 30 dias · dia × hora" />
         <ArrivalHeatmap leads={allLeads} />
       </div>
     </div>
@@ -364,22 +249,14 @@ export default function DashboardPage() {
 
 /* ── Componentes auxiliares ─────────────────────────────── */
 
-function SectionHeader({ code, title, side }: { code: string; title: string; side?: React.ReactNode }) {
+function SectionHeader({ title, subtitle, side }: { title: string; subtitle?: string; side?: React.ReactNode }) {
   return (
-    <div
-      className="px-4 sm:px-6 py-4 flex items-center justify-between gap-2"
-      style={{ borderBottom: "1px solid var(--line)" }}
-    >
-      <div className="flex items-center gap-3">
-        <span
-          className="font-mono"
-          style={{ fontSize: 10, color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700 }}
-        >
-          {code}
-        </span>
-        <h2 className="font-display font-bold" style={{ fontSize: 17, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+    <div className="dc-card-toolbar">
+      <div>
+        <h2 className="font-display font-semibold" style={{ fontSize: 16, color: "var(--ink)", letterSpacing: "-0.01em" }}>
           {title}
         </h2>
+        {subtitle && <p style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 2 }}>{subtitle}</p>}
       </div>
       {side}
     </div>
@@ -389,25 +266,17 @@ function SectionHeader({ code, title, side }: { code: string; title: string; sid
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="px-4 sm:px-6 py-10 text-center">
-      <p
-        className="font-mono mb-1"
-        style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.2em", textTransform: "uppercase" }}
-      >
-        · · ·
-      </p>
       <p style={{ fontSize: 13, color: "var(--ink-3)" }}>{message}</p>
     </div>
   );
 }
 
 function KPICard({
-  code,
   label,
   value,
   hint,
   format,
 }: {
-  code: string;
   label: string;
   value: string | number;
   hint?: string;
@@ -415,35 +284,15 @@ function KPICard({
 }) {
   const isNumber = typeof value === "number";
   const animated = useCountUp(isNumber ? value : 0, 1000);
-  const display = isNumber
-    ? (format ? format(animated) : String(Math.round(animated)))
-    : value;
+  const display = isNumber ? (format ? format(animated) : String(Math.round(animated))) : value;
 
   return (
-    <div className="kpi-tile p-5 sm:p-6" style={{ background: "var(--surface)" }}>
-      <div className="flex items-center justify-between mb-4">
-        <p
-          className="font-mono"
-          style={{ fontSize: 9, color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700 }}
-        >
-          {code}
-        </p>
-        <span style={{ width: 20, height: 2, background: "var(--accent-line)" }} />
-      </div>
-      <p
-        className="font-mono font-bold leading-none mb-2"
-        style={{ fontSize: 40, color: "var(--ink)", letterSpacing: "-0.04em" }}
-      >
+    <div className="dc-card kpi-tile dc-card-pad">
+      <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{label}</div>
+      <p className="font-display font-semibold" style={{ fontSize: 32, color: "var(--ink)", letterSpacing: "-0.02em", marginTop: 6 }}>
         {display}
       </p>
-      <p style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 500 }}>
-        {label}
-      </p>
-      {hint ? (
-        <p className="font-mono" style={{ fontSize: 9, color: "var(--ink-4)", marginTop: 4, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-          {hint}
-        </p>
-      ) : null}
+      {hint ? <div style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 4 }}>{hint}</div> : null}
     </div>
   );
 }

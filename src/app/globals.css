@@ -22,12 +22,17 @@
   --ok:          #0F7A5C;
   --danger:      #B3261E;
 
+  /* Raio padrão — cantos suaves em todo o app (cards, inputs, badges) */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-full: 9999px;
+
   /* Sidebar */
-  --sidebar-bg:      #0F1B2B;
-  --sidebar-surface: #172A40;
-  --sidebar-border:  rgba(255,255,255,0.07);
-  --sidebar-text:    rgba(255,255,255,0.55);
-  --sidebar-active:  rgba(39,63,92,0.35);
+  --sidebar-bg:      #FFFFFF;
+  --sidebar-border:  var(--line);
+  --sidebar-text:    var(--ink-3);
+  --sidebar-active:  var(--accent-soft);
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
@@ -50,7 +55,7 @@ body {
 /* ── Scrollbar ───────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--line); border-radius: 2px; }
+::-webkit-scrollbar-thumb  { background: var(--line); border-radius: var(--r-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
 /* ── Tipografia DRX ──────────────────────────────────────────── */
@@ -75,12 +80,86 @@ body {
   color: var(--accent);
 }
 
-/* ── Badges de nível ─────────────────────────────────────────── */
+/* ── Superfícies reutilizáveis (cards, painéis) ───────────────── */
+.dc-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.dc-card-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.dc-card-pad { padding: 24px; }
+
+.dc-count-pill {
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 2px 9px;
+  border-radius: var(--r-full);
+}
+
+.dc-thead { background: var(--bg); border-bottom: 1px solid var(--line-soft); }
+.dc-thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+.dc-tbody tr + tr { border-top: 1px solid var(--line-soft); }
+.dc-tbody td { padding: 12px 16px; }
+
+.dc-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--bg);
+}
+.dc-page-btn {
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  background: none;
+  border: none;
+}
+.dc-page-btn:hover:not(:disabled) { background: var(--line-soft); color: var(--ink); }
+.dc-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.dc-page-btn[data-active="true"] { background: var(--accent); color: #FFFFFF; }
+
+/* ── Badges pill de nível/status ───────────────────────────────── */
 .badge-hot          { background: rgba(179,38,30,0.08);   color: var(--danger); }
 .badge-warm         { background: rgba(180,83,9,0.08);    color: var(--warn); }
 .badge-cold         { background: rgba(92,114,144,0.10);  color: var(--ink-3); }
 .badge-disqualified { background: rgba(156,172,192,0.12); color: var(--ink-4); }
 .badge-auto         { background: rgba(15,122,92,0.10);   color: var(--ok); }
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
 
 /* ── Animações ───────────────────────────────────────────────── */
 @keyframes drx-pulse {
@@ -131,41 +210,30 @@ body {
 }
 
 /* ── Transições ──────────────────────────────────────────────── */
-a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
+a, button { transition: color 0.15s, background 0.15s, opacity 0.15s, border-color 0.15s; }
 
 /* ── Micro-interações do dashboard ───────────────────────────── */
-.kpi-tile { position: relative; transition: background 0.2s; }
-.kpi-tile::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s ease;
-}
-.kpi-tile:hover::after { transform: scaleX(1); }
+.kpi-tile { position: relative; transition: transform 0.15s, box-shadow 0.15s; border-radius: var(--r-lg); }
+.kpi-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,27,43,0.07); }
 
 .row-hover { transition: background 0.15s; }
-.row-hover:hover { background: var(--accent-soft); }
+.row-hover:hover { background: var(--bg); }
 
 .btn-meet {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--accent);
   border: 1px solid var(--accent-line);
   background: var(--surface);
   padding: 5px 12px;
+  border-radius: var(--r-full);
 }
 .btn-meet:hover { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
 
 /* ── Kanban ──────────────────────────────────────────────────── */
 .kanban-card {
   cursor: grab;
+  border-radius: var(--r-md);
   transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
 }
 .kanban-card:hover {
@@ -178,9 +246,8 @@ a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
 /* ── Toggle de IA (reutilizado em Leads e Funil) ─────────────── */
 .ia-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 4px 9px; cursor: pointer; border-radius: 0;
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; cursor: pointer; border-radius: var(--r-full);
   transition: opacity 0.15s;
 }
 .ia-chip[data-on="true"] {
@@ -203,6 +270,7 @@ a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
   color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: var(--r-md);
   padding: 9px 14px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -212,3 +280,25 @@ a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .filter-select { cursor: pointer; }
+
+/* ── Segmented control (filtros de período, canal, etc.) ─────── */
+.dc-segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+.dc-segmented button {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.dc-segmented button[data-active="true"] {
+  background: var(--accent);
+  color: #FFFFFF;
+}
