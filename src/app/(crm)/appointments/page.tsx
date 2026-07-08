@@ -6,6 +6,7 @@ import { format, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { api } from "@/lib/api";
 import { PageHero } from "@/components/PageHero";
+import { NewAppointmentModal } from "@/components/NewAppointmentModal";
 import type { Appointment } from "@/types";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -89,6 +90,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function AppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState("");
+  const [showNewModal, setShowNewModal] = useState(false);
 
   const params = statusFilter ? { status: statusFilter } : undefined;
   const { data, isLoading } = useQuery<{ items: Appointment[]; total: number }>({
@@ -112,32 +114,48 @@ export default function AppointmentsPage() {
         ]}
       />
 
-      {/* ── Filtro ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Todos os status</option>
-          {Object.entries(STATUS_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
-        {statusFilter && (
-          <button
-            onClick={() => setStatusFilter("")}
-            className="font-mono"
-            style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-              color: "var(--ink-3)", border: "1px solid var(--line)", background: "var(--surface)",
-              padding: "0 16px", height: 38, cursor: "pointer",
-            }}
+      {/* ── Filtro + ação ───────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
           >
-            Limpar
-          </button>
-        )}
+            <option value="">Todos os status</option>
+            {Object.entries(STATUS_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+          {statusFilter && (
+            <button
+              onClick={() => setStatusFilter("")}
+              className="font-mono"
+              style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                color: "var(--ink-3)", border: "1px solid var(--line)", background: "var(--surface)",
+                padding: "0 16px", height: 38, cursor: "pointer",
+              }}
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+
+        <button
+          onClick={() => setShowNewModal(true)}
+          className="font-mono"
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+            color: "#FFFFFF", background: "var(--ink)", border: "none",
+            padding: "10px 16px", cursor: "pointer",
+          }}
+        >
+          + Nova reunião
+        </button>
       </div>
+
+      {showNewModal && <NewAppointmentModal onClose={() => setShowNewModal(false)} />}
 
       {/* ── Desktop: tabela ── */}
       <div className="hidden md:block" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>

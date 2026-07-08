@@ -1,4 +1,4 @@
-import type { Appointment, Lead, Conversation, FollowUpRow } from "@/types";
+import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -30,16 +30,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   login: async (username: string, password: string) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    const qs = new URLSearchParams({ username, password }).toString();
+    const res = await fetch(`${BASE_URL}/auth/login?${qs}`, { method: "POST" });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error ?? `HTTP ${res.status}`);
+      throw new Error(err.detail ?? `HTTP ${res.status}`);
     }
-    return res.json() as Promise<{ access_token: string; token_type: string }>;
+    return res.json() as Promise<{ access_token: string; token_type: string; expires_in: number }>;
   },
 
   // Leads
@@ -60,8 +57,23 @@ export const api = {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     return request<{ items: Appointment[]; total: number }>(`/api/appointments${qs}`);
   },
-  getAvailability: (date: string, duration = 60) =>
-    request<{ available_slots: string[] }>(`/api/appointments/calendar/availability?date=${date}&duration=${duration}`),
+  getAvailability: (date: string, duration = 60, lawyerId?: string) => {
+    const qs = new URLSearchParams({ date, duration: String(duration), ...(lawyerId ? { lawyer_id: lawyerId } : {}) });
+    return request<{ available_slots: string[] }>(`/api/appointments/calendar/availability?${qs}`);
+  },
+  createAppointment: (body: {
+    lead_id: string; scheduled_at: string; duration_minutes?: number;
+    appointment_type?: string; channel: "meet" | "whatsapp";
+    lawyer_id?: string; client_email?: string; notes?: string;
+  }) => request<Appointment & { calendar_event_created: boolean }>("/api/appointments", {
+    method: "POST", body: JSON.stringify(body),
+  }),
+
+  // Advogados / Google Calendar
+  getLawyers: () => request<Lawyer[]>("/api/lawyers"),
+  startGoogleOAuth: () => request<{ authorization_url: string }>("/api/oauth/google/start"),
+  disconnectGoogle: (lawyerId: string) =>
+    request(`/api/lawyers/${lawyerId}/disconnect`, { method: "POST" }),
 
   // Conversations
   getConversations: (status?: string) => {

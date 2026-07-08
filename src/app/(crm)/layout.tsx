@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getUsername } from "@/lib/auth";
 
 const navItems = [
   { href: "/dashboard",     label: "Dashboard",      code: "01" },
@@ -11,22 +12,8 @@ const navItems = [
   { href: "/conversations", label: "Atendimento",    code: "04" },
   { href: "/appointments",  label: "Agendamentos",   code: "05" },
   { href: "/follow-up",    label: "Follow-up",      code: "06" },
+  { href: "/settings",     label: "Configurações",  code: "07" },
 ];
-
-function getUsername(): string {
-  try {
-    const token = localStorage.getItem("drx_token") ?? "";
-    const [encoded] = token.split(".");
-    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(base64).split("").map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("")
-    );
-    const payload = JSON.parse(json);
-    return payload.sub ?? "usuário";
-  } catch {
-    return "usuário";
-  }
-}
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

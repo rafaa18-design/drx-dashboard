@@ -59,6 +59,16 @@ export interface Message {
   created_at: string;
 }
 
+export interface Lawyer {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  is_default: boolean;
+  google_connected: boolean;
+  google_account_email: string | null;
+}
+
 export interface Appointment {
   id: string;
   lead_id: string;
