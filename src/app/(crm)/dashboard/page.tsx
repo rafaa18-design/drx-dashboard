@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PageHero } from "@/components/PageHero";
-import type { Appointment } from "@/types";
+import { LeadsOverTime } from "@/components/charts/LeadsOverTime";
+import { SourceDonut } from "@/components/charts/SourceDonut";
+import { TemperatureBars } from "@/components/charts/TemperatureBars";
+import { ArrivalHeatmap } from "@/components/charts/ArrivalHeatmap";
+import { useCountUp } from "@/hooks/useCountUp";
+import type { Appointment, Lead } from "@/types";
 
 const STAGE_LABELS: Record<string, string> = {
   new:        "Novo",
@@ -56,6 +61,13 @@ export default function DashboardPage() {
     queryFn: () => api.getAppointments({ limit: "10", status: "scheduled" }) as Promise<{ items: Appointment[]; total: number }>,
     refetchInterval: 60_000,
   });
+  const { data: leadsData } = useQuery({
+    queryKey: ["dashboard-leads"],
+    queryFn: () => api.getLeads({ limit: "500" }) as Promise<{ items: Lead[]; total: number }>,
+    refetchInterval: 60_000,
+  });
+
+  const allLeads = leadsData?.items ?? [];
 
   const funnelTotal = funnel?.stages.reduce((a: number, s: { count: number }) => a + s.count, 0) || 1;
   const funnelMax = funnel?.stages.reduce((a: number, s: { count: number }) => Math.max(a, s.count), 0) || 1;
@@ -100,15 +112,31 @@ export default function DashboardPage() {
         <KPICard
           code="03"
           label="Taxa de conversão"
-          value={kpis ? `${(kpis.conversion_rate * 100).toFixed(1)}%` : "—"}
+          value={kpis ? kpis.conversion_rate * 100 : "—"}
+          format={(n) => `${n.toFixed(1)}%`}
           hint="leads fechados"
         />
         <KPICard
           code="04"
           label="Taxa de escalação"
-          value={kpis ? `${(kpis.escalation_rate * 100).toFixed(1)}%` : "—"}
+          value={kpis ? kpis.escalation_rate * 100 : "—"}
+          format={(n) => `${n.toFixed(1)}%`}
           hint="foram para humano"
         />
+      </div>
+
+      {/* ── Evolução de leads ─────────────────────────────── */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+        <SectionHeader
+          code="G.01"
+          title="Evolução de leads"
+          side={
+            <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              novos leads por dia
+            </span>
+          }
+        />
+        <LeadsOverTime leads={allLeads} />
       </div>
 
       {/* ── Agendamentos + Funil lado a lado ──────────────── */}
@@ -287,6 +315,49 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Origem + Temperatura da base ──────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <div className="lg:col-span-2" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+          <SectionHeader
+            code="G.02"
+            title="Origem dos leads"
+            side={
+              <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                por plataforma
+              </span>
+            }
+          />
+          <SourceDonut leads={allLeads} />
+        </div>
+
+        <div className="lg:col-span-3" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+          <SectionHeader
+            code="G.03"
+            title="Temperatura da base"
+            side={
+              <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                qualificação do Tiago (IA)
+              </span>
+            }
+          />
+          <TemperatureBars leads={allLeads} />
+        </div>
+      </div>
+
+      {/* ── Heatmap de chegada ────────────────────────────── */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+        <SectionHeader
+          code="G.04"
+          title="Quando os leads chegam"
+          side={
+            <span className="font-mono hidden sm:inline" style={{ fontSize: 10, color: "var(--ink-4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              últimos 30 dias · dia × hora
+            </span>
+          }
+        />
+        <ArrivalHeatmap leads={allLeads} />
+      </div>
     </div>
   );
 }
@@ -334,12 +405,20 @@ function KPICard({
   label,
   value,
   hint,
+  format,
 }: {
   code: string;
   label: string;
   value: string | number;
   hint?: string;
+  format?: (n: number) => string;
 }) {
+  const isNumber = typeof value === "number";
+  const animated = useCountUp(isNumber ? value : 0, 1000);
+  const display = isNumber
+    ? (format ? format(animated) : String(Math.round(animated)))
+    : value;
+
   return (
     <div className="kpi-tile p-5 sm:p-6" style={{ background: "var(--surface)" }}>
       <div className="flex items-center justify-between mb-4">
@@ -355,7 +434,7 @@ function KPICard({
         className="font-mono font-bold leading-none mb-2"
         style={{ fontSize: 40, color: "var(--ink)", letterSpacing: "-0.04em" }}
       >
-        {value}
+        {display}
       </p>
       <p style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 500 }}>
         {label}

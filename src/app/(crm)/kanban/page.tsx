@@ -78,7 +78,7 @@ function scoreStyle(level: string | null): { bg: string; text: string } {
 
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "#C13584",
-  tiktok:    "#2C3E55",
+  tiktok:    "#0891B2",
   youtube:   "#B3261E",
   twitter:   "#1DA1F2",
   facebook:  "#1877F2",
