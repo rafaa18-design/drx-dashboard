@@ -45,16 +45,16 @@ export function Sidebar({
         className={`flex items-center gap-2.5 px-4 ${collapsed ? "justify-center" : ""}`}
         style={{ height: 72, borderBottom: "1px solid var(--line-soft)" }}
       >
-        <div style={{ height: 34, width: 34, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ height: 38, width: 38, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "var(--r-sm)" }}>
           <img
             src="/logo-oficial.png"
             alt="DR&X"
-            style={{ height: 85, width: "auto", display: "block" }}
+            style={{ height: "100%", width: "100%", objectFit: "contain", display: "block" }}
           />
         </div>
         {!collapsed && (
-          <span className="font-display font-semibold" style={{ fontSize: 16, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-            DR&amp;X Advogados
+          <span className="font-display font-semibold" style={{ fontSize: 17, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+            Advogados
           </span>
         )}
       </div>
