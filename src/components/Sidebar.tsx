@@ -37,7 +37,7 @@ export function Sidebar({
 
   return (
     <aside
-      className="flex flex-col bg-white transition-[width] duration-200 ease-out flex-shrink-0"
+      className="flex flex-col bg-white transition-[width] duration-200 ease-out flex-shrink-0 h-screen"
       style={{ width: collapsed ? 72 : 240, borderRight: "1px solid var(--line)" }}
     >
       {/* Logo */}

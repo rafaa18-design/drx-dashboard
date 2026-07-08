@@ -63,7 +63,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar — fixa/drawer no mobile, colapsável no desktop */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-out lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 h-screen transition-transform duration-200 ease-out lg:relative lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
