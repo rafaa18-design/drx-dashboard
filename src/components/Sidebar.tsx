@@ -42,21 +42,16 @@ export function Sidebar({
     >
       {/* Logo */}
       <div
-        className={`flex items-center gap-2.5 px-4 ${collapsed ? "justify-center" : ""}`}
+        className="flex items-center justify-center px-4"
         style={{ height: 72, borderBottom: "1px solid var(--line-soft)" }}
       >
-        <div style={{ height: 38, width: 38, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "var(--r-sm)" }}>
+        <div style={{ height: 48, width: 48, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "var(--r-sm)" }}>
           <img
             src="/logo-oficial.png"
             alt="DR&X"
             style={{ height: "100%", width: "100%", objectFit: "contain", display: "block" }}
           />
         </div>
-        {!collapsed && (
-          <span className="font-display font-semibold" style={{ fontSize: 17, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-            Advogados
-          </span>
-        )}
       </div>
 
       {/* Nav */}
