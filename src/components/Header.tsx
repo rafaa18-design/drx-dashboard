@@ -33,7 +33,7 @@ export function Header({ username, onMenuClick }: { username: string; onMenuClic
   return (
     <header
       className="flex items-center justify-between bg-white px-5 sm:px-8"
-      style={{ height: 72, borderBottom: "1px solid var(--line)", flexShrink: 0 }}
+      style={{ height: 92, borderBottom: "1px solid var(--line)", flexShrink: 0 }}
     >
       <div className="flex items-center gap-3 min-w-0">
         <button
