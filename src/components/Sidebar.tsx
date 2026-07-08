@@ -45,7 +45,7 @@ export function Sidebar({
         className="flex items-center justify-center px-4"
         style={{ height: 72, borderBottom: "1px solid var(--line-soft)" }}
       >
-        <div style={{ height: 48, width: 48, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "var(--r-sm)" }}>
+        <div style={{ height: 60, width: 60, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "var(--r-sm)" }}>
           <img
             src="/logo-oficial.png"
             alt="DR&X"
