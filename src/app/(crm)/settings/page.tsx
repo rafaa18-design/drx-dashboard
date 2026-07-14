@@ -52,26 +52,30 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
 
   return (
     <div className="drx-fadeup dc-card">
-      <div className="flex items-center gap-4 p-4 sm:p-5">
-        <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 15 }}>
-          {initials(lawyer.name)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{lawyer.name}</p>
-            {lawyer.is_default && <span className="dc-count-pill">padrão</span>}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 15 }}>
+            {initials(lawyer.name)}
           </div>
-          <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{lawyer.email}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="break-words" style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{lawyer.name}</p>
+              {lawyer.is_default && <span className="dc-count-pill flex-shrink-0">padrão</span>}
+            </div>
+            <p className="truncate" style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{lawyer.email}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:ml-auto">
           <span className="badge-pill" style={{
             color: lawyer.google_connected ? "var(--ok)" : "var(--ink-4)",
             background: lawyer.google_connected ? "rgba(15,122,92,0.08)" : "var(--bg)",
             border: `1px solid ${lawyer.google_connected ? "rgba(15,122,92,0.25)" : "var(--line)"}`,
           }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: lawyer.google_connected ? "var(--ok)" : "var(--ink-4)" }} />
-            {lawyer.google_connected ? (lawyer.google_account_email ?? "Conectado") : "Não conectado"}
+            <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: lawyer.google_connected ? "var(--ok)" : "var(--ink-4)" }} />
+            <span className="truncate" style={{ maxWidth: 180 }}>
+              {lawyer.google_connected ? (lawyer.google_account_email ?? "Conectado") : "Não conectado"}
+            </span>
           </span>
 
           {isMe && (
@@ -79,7 +83,8 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
               <button
                 onClick={() => disconnect.mutate()}
                 disabled={disconnect.isPending}
-                style={{ fontSize: 13, fontWeight: 600, color: "var(--danger)", border: "1px solid rgba(179,38,30,0.3)", background: "rgba(179,38,30,0.06)", borderRadius: "var(--r-md)", padding: "8px 14px", cursor: "pointer" }}
+                className="w-full sm:w-auto"
+                style={{ fontSize: 13, fontWeight: 600, color: "var(--danger)", border: "1px solid rgba(179,38,30,0.3)", background: "rgba(179,38,30,0.06)", borderRadius: "var(--r-md)", padding: "8px 14px", cursor: "pointer", whiteSpace: "nowrap" }}
               >
                 Desconectar
               </button>
@@ -87,7 +92,8 @@ function LawyerCard({ lawyer, isMe }: { lawyer: Lawyer; isMe: boolean }) {
               <button
                 onClick={() => connect.mutate()}
                 disabled={connect.isPending}
-                style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)", borderRadius: "var(--r-md)", padding: "8px 16px", cursor: "pointer", border: "none" }}
+                className="w-full sm:w-auto"
+                style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)", borderRadius: "var(--r-md)", padding: "8px 16px", cursor: "pointer", border: "none", whiteSpace: "nowrap" }}
               >
                 {connect.isPending ? "Redirecionando..." : "Conectar Google Calendar"}
               </button>
