@@ -32,6 +32,10 @@ RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
 # Standalone output + static assets
+# O build "standalone" do Next.js NAO inclui public/ automaticamente —
+# sem essa linha, arquivos como a logo (public/logo-oficial.png) davam 404
+# em produção mesmo estando no repositorio.
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
