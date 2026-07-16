@@ -55,11 +55,33 @@ function clean(v: string | null | undefined): string | null {
   return GARBAGE.has(t.toLowerCase()) ? null : t;
 }
 
+function stripConnectorPrefix(v: string): string {
+  return v.replace(/^[a-zA-Z]+-/, "");
+}
+
+function formatPhone(raw: string): string {
+  const digits = stripConnectorPrefix(raw).replace(/\D/g, "");
+  let country = "";
+  let rest = digits;
+  if (rest.length >= 12 && rest.startsWith("55")) {
+    country = "+55 ";
+    rest = rest.slice(2);
+  }
+  if (rest.length === 11) {
+    return `${country}(${rest.slice(0, 2)}) ${rest.slice(2, 7)}-${rest.slice(7)}`;
+  }
+  if (rest.length === 10) {
+    return `${country}(${rest.slice(0, 2)}) ${rest.slice(2, 6)}-${rest.slice(6)}`;
+  }
+  return digits || raw;
+}
+
 function leadDisplay(lead: Lead): { primary: string; secondary: string | null } {
   const name  = clean(lead.name);
   const phone = clean(lead.phone);
-  if (name)  return { primary: name,  secondary: phone };
-  if (phone) return { primary: phone, secondary: null };
+  const formattedPhone = phone ? formatPhone(phone) : null;
+  if (name)          return { primary: name,          secondary: formattedPhone };
+  if (formattedPhone) return { primary: formattedPhone, secondary: null };
   return { primary: "—", secondary: null };
 }
 
