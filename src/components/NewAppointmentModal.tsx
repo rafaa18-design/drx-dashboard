@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import type { Lead } from "@/types";
 
 function todayISO(): string {
@@ -78,7 +79,7 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
             <label className="block mb-1.5" style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)" }}>Lead</label>
             {selectedLead ? (
               <div className="flex items-center justify-between" style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: "var(--r-md)", background: "var(--bg)" }}>
-                <span style={{ fontSize: 13, color: "var(--ink)" }}>{selectedLead.name ?? selectedLead.phone}</span>
+                <span style={{ fontSize: 13, color: "var(--ink)" }}>{selectedLead.name ?? formatPhone(selectedLead.phone)}</span>
                 <button onClick={() => setLeadId("")} style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>trocar</button>
               </div>
             ) : (
@@ -98,7 +99,7 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
                         className="row-hover w-full text-left"
                         style={{ padding: "8px 12px", fontSize: 13, color: "var(--ink)", background: "var(--surface)", border: "none", cursor: "pointer", display: "block" }}
                       >
-                        {l.name ?? l.phone} <span style={{ fontSize: 12, color: "var(--ink-3)" }}>· {l.phone}</span>
+                        {l.name ?? formatPhone(l.phone)} <span style={{ fontSize: 12, color: "var(--ink-3)" }}>· {formatPhone(l.phone)}</span>
                       </button>
                     ))}
                   </div>

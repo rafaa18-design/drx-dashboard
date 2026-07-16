@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import { NewAppointmentModal } from "@/components/NewAppointmentModal";
 import type { Appointment } from "@/types";
 
@@ -61,9 +62,63 @@ function ChannelBadge({ appt }: { appt: Appointment }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_STYLE[status] ?? STATUS_STYLE.scheduled;
-  return <span className="badge-pill" style={{ color: s.text, background: s.bg }}>{STATUS_LABELS[status] ?? status}</span>;
+function StatusSelect({ appt }: { appt: Appointment }) {
+  const qc = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (status: Appointment["status"]) => api.updateAppointmentStatus(appt.id, status),
+    onMutate: async (status) => {
+      await qc.cancelQueries({ queryKey: ["appointments"] });
+      const previous = qc.getQueriesData<{ items: Appointment[]; total: number }>({ queryKey: ["appointments"] });
+      qc.setQueriesData<{ items: Appointment[]; total: number }>({ queryKey: ["appointments"] }, (old) =>
+        old ? { ...old, items: old.items.map((a) => (a.id === appt.id ? { ...a, status } : a)) } : old
+      );
+      return { previous };
+    },
+    onError: (_err, _status, ctx) => {
+      ctx?.previous?.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+  });
+
+  const s = STATUS_STYLE[appt.status] ?? STATUS_STYLE.scheduled;
+
+  return (
+    <div className="relative inline-flex items-center" style={{ opacity: mutation.isPending ? 0.6 : 1 }}>
+      <select
+        value={appt.status}
+        disabled={mutation.isPending}
+        onChange={(e) => mutation.mutate(e.target.value as Appointment["status"])}
+        title="Alterar status do agendamento"
+        className="badge-pill"
+        style={{
+          color: s.text,
+          background: s.bg,
+          border: "none",
+          cursor: mutation.isPending ? "wait" : "pointer",
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          paddingRight: 22,
+          font: "inherit",
+          fontWeight: 600,
+        }}
+      >
+        {Object.entries(STATUS_LABELS).map(([k, v]) => (
+          <option key={k} value={k} style={{ color: "var(--ink)", background: "var(--surface)" }}>
+            {v}
+          </option>
+        ))}
+      </select>
+      <svg
+        width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+        strokeLinecap="round" strokeLinejoin="round"
+        style={{ position: "absolute", right: 8, pointerEvents: "none", color: s.text }}
+      >
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </div>
+  );
 }
 
 export default function AppointmentsPage() {
@@ -122,7 +177,7 @@ export default function AppointmentsPage() {
             </thead>
             <tbody className="dc-tbody">
               {items.map((appt) => {
-                const name = appt.lead_name ?? appt.lead_phone ?? "—";
+                const name = appt.lead_name ?? (appt.lead_phone ? formatPhone(appt.lead_phone) : null) ?? "—";
                 return (
                   <tr key={appt.id} className="row-hover">
                     <td>
@@ -132,13 +187,13 @@ export default function AppointmentsPage() {
                         </div>
                         <div>
                           <p style={{ fontWeight: 600, color: "var(--ink)" }}>{name}</p>
-                          {appt.lead_phone && appt.lead_name && <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{appt.lead_phone}</p>}
+                          {appt.lead_phone && appt.lead_name && <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{formatPhone(appt.lead_phone)}</p>}
                         </div>
                       </div>
                     </td>
                     <td style={{ fontWeight: 600, color: "var(--ink-2)" }}>{formatWhen(appt.scheduled_at)}</td>
                     <td style={{ fontSize: 13, color: "var(--ink-3)" }}>{TYPE_LABELS[appt.appointment_type ?? ""] ?? appt.appointment_type ?? "—"}</td>
-                    <td><StatusBadge status={appt.status} /></td>
+                    <td><StatusSelect appt={appt} /></td>
                     <td><ChannelBadge appt={appt} /></td>
                   </tr>
                 );
@@ -166,7 +221,7 @@ export default function AppointmentsPage() {
                       {appt.lead_phone && appt.lead_name && <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{appt.lead_phone}</p>}
                     </div>
                   </div>
-                  <StatusBadge status={appt.status} />
+                  <StatusSelect appt={appt} />
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>{formatWhen(appt.scheduled_at)}</p>
                 <p style={{ fontSize: 12, color: "var(--ink-3)", marginBottom: 10 }}>{TYPE_LABELS[appt.appointment_type ?? ""] ?? appt.appointment_type ?? "—"}</p>

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import type { Lead } from "@/types";
 
 // ─── Column config — paleta navy DRX ─────────────────────────────────────────
@@ -123,9 +124,9 @@ function KanbanCard({
 
       <Link href={`/leads/${lead.id}`} style={{ textDecoration: "none" }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", lineHeight: 1.3, marginBottom: lead.name ? 2 : 8 }}>
-          {lead.name ?? lead.phone}
+          {lead.name ?? formatPhone(lead.phone)}
         </p>
-        {lead.name && <p style={{ fontSize: 11, color: "var(--ink-3)", marginBottom: 8 }}>{lead.phone}</p>}
+        {lead.name && <p style={{ fontSize: 11, color: "var(--ink-3)", marginBottom: 8 }}>{formatPhone(lead.phone)}</p>}
       </Link>
 
       {lead.qualification_score > 0 && (

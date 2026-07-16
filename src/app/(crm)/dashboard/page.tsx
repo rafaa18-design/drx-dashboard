@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import { LeadsOverTime } from "@/components/charts/LeadsOverTime";
 import { SourceDonut } from "@/components/charts/SourceDonut";
 import { TemperatureBars } from "@/components/charts/TemperatureBars";
@@ -124,7 +125,7 @@ export default function DashboardPage() {
                 const date = new Date(appt.scheduled_at);
                 const sc = APPT_STATUS_COLOR[appt.status] ?? APPT_STATUS_COLOR.scheduled;
                 const hoje = isToday(date);
-                const name = appt.lead_name ?? appt.lead_phone ?? "Lead sem nome";
+                const name = appt.lead_name ?? (appt.lead_phone ? formatPhone(appt.lead_phone) : null) ?? "Lead sem nome";
                 return (
                   <div
                     key={appt.id}

@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import type { FollowUpRow } from "@/types";
 
 const FU_MIN_DAYS: Record<number, number> = { 1: 3, 2: 6, 3: 14 };
@@ -111,7 +112,7 @@ function FollowUpCard({ row, index, onSend, onResponded, loading }: {
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)", lineHeight: 1.2 }}>{name}</p>
             <div className="flex items-center gap-2.5 flex-wrap" style={{ marginTop: 4 }}>
-              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{row.lead_phone}</span>
+              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{formatPhone(row.lead_phone)}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: SCORE_COLOR(row.qualification_score) }}>score {row.qualification_score}</span>
               <span style={{ fontSize: 12, color: "var(--ink-4)" }}>
                 · {row.days_since_meeting < 0 ? `reunião em ${-row.days_since_meeting}d` : row.days_since_meeting === 0 ? "reunião hoje" : `${row.days_since_meeting}d pós-reunião`}

@@ -68,6 +68,10 @@ export const api = {
   }) => request<Appointment & { calendar_event_created: boolean }>("/api/appointments", {
     method: "POST", body: JSON.stringify(body),
   }),
+  updateAppointmentStatus: (id: string, status: Appointment["status"]) =>
+    request<Appointment>(`/api/appointments/${id}`, {
+      method: "PATCH", body: JSON.stringify({ status }),
+    }),
 
   // Advogados / Google Calendar
   getLawyers: () => request<Lawyer[]>("/api/lawyers"),

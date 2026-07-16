@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import Link from "next/link";
 import type { Lead } from "@/types";
 
@@ -53,27 +54,6 @@ function clean(v: string | null | undefined): string | null {
   if (!v) return null;
   const t = v.trim();
   return GARBAGE.has(t.toLowerCase()) ? null : t;
-}
-
-function stripConnectorPrefix(v: string): string {
-  return v.replace(/^[a-zA-Z]+-/, "");
-}
-
-function formatPhone(raw: string): string {
-  const digits = stripConnectorPrefix(raw).replace(/\D/g, "");
-  let country = "";
-  let rest = digits;
-  if (rest.length >= 12 && rest.startsWith("55")) {
-    country = "+55 ";
-    rest = rest.slice(2);
-  }
-  if (rest.length === 11) {
-    return `${country}(${rest.slice(0, 2)}) ${rest.slice(2, 7)}-${rest.slice(7)}`;
-  }
-  if (rest.length === 10) {
-    return `${country}(${rest.slice(0, 2)}) ${rest.slice(2, 6)}-${rest.slice(6)}`;
-  }
-  return digits || raw;
 }
 
 function leadDisplay(lead: Lead): { primary: string; secondary: string | null } {
@@ -195,7 +175,7 @@ export default function LeadsPage() {
   });
 
   function handleDelete(lead: Lead) {
-    const name = lead.name || lead.phone || "este lead";
+    const name = lead.name || formatPhone(lead.phone) || "este lead";
     if (!confirm(`Apagar ${name}? Esta ação não pode ser desfeita.`)) return;
     deleteLead.mutate(lead.id);
   }

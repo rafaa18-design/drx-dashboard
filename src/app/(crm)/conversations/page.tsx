@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import type { Conversation } from "@/types";
 
 function initials(text: string): string {
@@ -36,7 +37,7 @@ function ConversationCard({ conv }: { conv: Conversation }) {
     },
   });
 
-  const name = conv.lead_name ?? conv.lead_phone ?? "Lead sem nome";
+  const name = conv.lead_name ?? (conv.lead_phone ? formatPhone(conv.lead_phone) : null) ?? "Lead sem nome";
   const waiting = formatWaiting(conv.last_message_at);
 
   return (
@@ -55,7 +56,7 @@ function ConversationCard({ conv }: { conv: Conversation }) {
               {name}
             </Link>
             {conv.lead_phone && conv.lead_name && (
-              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{conv.lead_phone}</span>
+              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{formatPhone(conv.lead_phone)}</span>
             )}
           </div>
           <p style={{ fontSize: 13, color: "var(--ink-3)" }}>

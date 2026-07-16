@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { formatPhone } from "@/lib/phone";
 import type { Appointment, Conversation, Lead } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -151,7 +152,7 @@ export default function LeadDetailPage() {
 
   function handleDelete() {
     if (!lead) return;
-    const name = lead.name || lead.phone || "este lead";
+    const name = lead.name || formatPhone(lead.phone) || "este lead";
     if (!confirm(`Apagar ${name}? Esta ação não pode ser desfeita.`)) return;
     deleteLead.mutate();
   }
@@ -169,7 +170,7 @@ export default function LeadDetailPage() {
     );
   }
 
-  const name = clean(lead.name) ?? lead.phone;
+  const name = clean(lead.name) ?? formatPhone(lead.phone);
   const plat = clean(lead.platform);
   const caseType = clean(lead.case_type);
   const source = clean(lead.source);
@@ -200,7 +201,7 @@ export default function LeadDetailPage() {
             <div className="min-w-0">
               <h1 className="font-display font-semibold truncate" style={{ fontSize: 22, color: "var(--ink)", letterSpacing: "-0.01em" }}>{name}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5" style={{ marginTop: 6 }}>
-                <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{lead.phone}</span>
+                <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{formatPhone(lead.phone)}</span>
                 {plat && <span className="badge-pill" style={{ color: platformColor(plat), background: `${platformColor(plat)}14` }}>{plat}</span>}
                 <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{STATUS_LABELS[lead.commercial_status] ?? lead.commercial_status}</span>
               </div>
