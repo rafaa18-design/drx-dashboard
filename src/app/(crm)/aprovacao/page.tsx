@@ -88,6 +88,16 @@ function ApprovalCard({ lead }: { lead: Lead }) {
     },
   });
 
+  const reject = useMutation({
+    mutationFn: () => api.deleteLead(lead.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+  });
+
+  function handleReject() {
+    if (!confirm(`Reprovar e excluir ${displayName}? Essa ação não pode ser desfeita.`)) return;
+    reject.mutate();
+  }
+
   const name = clean(lead.name);
   const displayName = name ?? formatPhone(lead.phone);
   const caseType = clean(lead.case_type);
@@ -144,10 +154,21 @@ function ApprovalCard({ lead }: { lead: Lead }) {
       )}
 
       {!(result?.ok) && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={handleReject}
+            disabled={reject.isPending || approve.isPending}
+            style={{
+              fontSize: 13, fontWeight: 600, color: "var(--danger)", background: "transparent",
+              border: "1px solid var(--line)", borderRadius: "var(--r-md)", padding: "9px 18px",
+              cursor: reject.isPending ? "wait" : "pointer", opacity: reject.isPending ? 0.6 : 1,
+            }}
+          >
+            {reject.isPending ? "Reprovando..." : "Reprovar"}
+          </button>
           <button
             onClick={() => approve.mutate()}
-            disabled={approve.isPending}
+            disabled={approve.isPending || reject.isPending}
             style={{
               fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)",
               border: "none", borderRadius: "var(--r-md)", padding: "9px 18px",
