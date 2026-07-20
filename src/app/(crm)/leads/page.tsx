@@ -8,13 +8,14 @@ import Link from "next/link";
 import type { Lead } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
-  new:        "Novo",
-  contacted:  "Contactado",
-  qualified:  "Qualificado",
-  proposal:   "Proposta",
-  won:        "Fechado",
-  follow_up:  "Follow-up",
-  lost:       "Perdido",
+  new:              "Novo",
+  contacted:        "Contactado",
+  qualified:        "Qualificado",
+  pending_approval: "Aguardando aprovação",
+  proposal:         "Proposta",
+  won:              "Fechado",
+  follow_up:        "Follow-up",
+  lost:             "Perdido",
 };
 
 const LEVEL_LABELS: Record<string, string> = {

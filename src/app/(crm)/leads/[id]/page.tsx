@@ -9,7 +9,7 @@ import { formatPhone } from "@/lib/phone";
 import type { Appointment, Conversation, Lead } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
-  new: "Novo", contacted: "Contactado", qualified: "Qualificado", proposal: "Proposta",
+  new: "Novo", contacted: "Contactado", qualified: "Qualificado", pending_approval: "Aguardando aprovação", proposal: "Proposta",
   won: "Fechado", follow_up: "Follow-up", lost: "Perdido",
 };
 

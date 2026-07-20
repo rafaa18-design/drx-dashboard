@@ -51,6 +51,16 @@ export const api = {
     request(`/api/leads/${id}/toggle-ai`, { method: "POST" }),
   deleteLead: (id: string) =>
     request(`/api/leads/${id}`, { method: "DELETE" }),
+  approveLead: (id: string) =>
+    request<{
+      lead_id: string;
+      appointment_id: string;
+      scheduled_at: string;
+      formatted_datetime: string;
+      calendar_event_created: boolean;
+      whatsapp_message_sent: boolean;
+      message_text: string;
+    }>(`/api/leads/${id}/approve`, { method: "POST" }),
 
   // Appointments
   getAppointments: (params?: Record<string, string>) => {

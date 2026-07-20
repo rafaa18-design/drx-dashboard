@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   DashboardIcon, FunnelIcon, UsersIcon, ChatIcon,
-  CalendarIcon, ClockIcon, GearIcon,
+  CalendarIcon, ClockIcon, GearIcon, CheckBadgeIcon,
   ChevronLeftIcon, ChevronRightIcon,
 } from "./icons";
 
@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { href: "/leads",         label: "Leads",        Icon: UsersIcon },
   { href: "/conversations", label: "Atendimento",  Icon: ChatIcon },
   { href: "/appointments",  label: "Agendamentos", Icon: CalendarIcon },
+  { href: "/aprovacao",     label: "Aprovação Manual", Icon: CheckBadgeIcon },
   { href: "/follow-up",     label: "Follow-up",    Icon: ClockIcon },
   { href: "/settings",      label: "Configurações",Icon: GearIcon },
 ];
@@ -28,10 +29,12 @@ export function Sidebar({
   collapsed,
   onToggle,
   attentionCount = 0,
+  pendingApprovalCount = 0,
 }: {
   collapsed: boolean;
   onToggle: () => void;
   attentionCount?: number;
+  pendingApprovalCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -58,7 +61,10 @@ export function Sidebar({
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {NAV.map(({ href, label, Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
-          const showBadge = href === "/conversations" && attentionCount > 0;
+          const badgeCount = href === "/conversations" ? attentionCount
+            : href === "/aprovacao" ? pendingApprovalCount
+            : 0;
+          const showBadge = badgeCount > 0;
           return (
             <Link
               key={href}
@@ -90,7 +96,7 @@ export function Sidebar({
                   className="font-mono text-white text-xs font-bold text-center leading-none"
                   style={{ marginLeft: "auto", borderRadius: "var(--r-full)", background: "var(--danger)", padding: "2px 6px", minWidth: 20 }}
                 >
-                  {attentionCount > 99 ? "99+" : attentionCount}
+                  {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}
             </Link>

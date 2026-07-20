@@ -9,7 +9,7 @@ export interface Lead {
   qualification_score: number;
   qualification_level: "hot" | "warm" | "cold" | "disqualified" | null;
   qualification_signals: Record<string, unknown> | null;
-  commercial_status: "new" | "contacted" | "qualified" | "proposal" | "won" | "follow_up" | "lost";
+  commercial_status: "new" | "contacted" | "qualified" | "pending_approval" | "proposal" | "won" | "follow_up" | "lost";
   ai_active: boolean;
   source: string;
   assigned_to: string | null;

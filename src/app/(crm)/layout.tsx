@@ -7,7 +7,7 @@ import { getUsername } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import type { Conversation } from "@/types";
+import type { Conversation, Lead } from "@/types";
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -46,6 +46,13 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     enabled: authed,
   });
 
+  const { data: pendingApproval } = useQuery({
+    queryKey: ["leads", { status: "pending_approval" }],
+    queryFn: () => api.getLeads({ status: "pending_approval" }) as Promise<{ items: Lead[]; total: number }>,
+    refetchInterval: 15_000,
+    enabled: authed,
+  });
+
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
@@ -71,6 +78,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           collapsed={collapsed}
           onToggle={toggleCollapsed}
           attentionCount={pending?.total ?? 0}
+          pendingApprovalCount={pendingApproval?.total ?? 0}
         />
       </div>
 
