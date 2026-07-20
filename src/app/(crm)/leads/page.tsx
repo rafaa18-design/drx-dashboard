@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
+import { useNow } from "@/hooks/useNow";
 import Link from "next/link";
 import type { Lead } from "@/types";
 
@@ -116,6 +117,7 @@ function IAToggle({ lead, onToggle, toggling }: { lead: Lead; onToggle: () => vo
 
 export default function LeadsPage() {
   const qc = useQueryClient();
+  useNow(); // re-renderiza periodicamente pra "ha Xh/Xd" nao ficar parado no tempo
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -135,6 +137,7 @@ export default function LeadsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["leads", params],
     queryFn: () => api.getLeads(params),
+    refetchInterval: 30_000,
   });
 
   const items = (data?.items ?? []) as Lead[];

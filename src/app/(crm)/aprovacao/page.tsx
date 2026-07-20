@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
+import { useNow } from "@/hooks/useNow";
 import type { Lead } from "@/types";
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -162,9 +163,12 @@ function ApprovalCard({ lead }: { lead: Lead }) {
 }
 
 export default function ManualApprovalPage() {
+  useNow(); // re-renderiza periodicamente pra "ha Xh/Xd" nao ficar parado no tempo
+
   const { data, isLoading } = useQuery({
     queryKey: ["leads", { status: "pending_approval" }],
     queryFn: () => api.getLeads({ status: "pending_approval" }) as Promise<{ items: Lead[]; total: number }>,
+    refetchInterval: 30_000,
   });
 
   const items = data?.items ?? [];
