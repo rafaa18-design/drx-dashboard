@@ -89,12 +89,16 @@ function ApprovalCard({ lead }: { lead: Lead }) {
   });
 
   const reject = useMutation({
-    mutationFn: () => api.deleteLead(lead.id),
+    // Marca como "lost" em vez de excluir — se a lead escrever de novo depois,
+    // o sistema precisa lembrar que ela já foi rejeitada (excluir apagava essa
+    // memória e deixava o agente oferecer reunião de novo pra quem já tinha
+    // sido reprovado).
+    mutationFn: () => api.updateLead(lead.id, { commercial_status: "lost" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
   });
 
   function handleReject() {
-    if (!confirm(`Reprovar e excluir ${displayName}? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Reprovar ${displayName}? A lead sai da fila e o agente não vai mais oferecer reunião pra ela automaticamente.`)) return;
     reject.mutate();
   }
 
