@@ -1,6 +1,6 @@
 import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer } from "@/types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 function getToken() {
   return typeof window !== "undefined" ? localStorage.getItem("drx_token") : null;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, BASE_URL } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
 import { useNow } from "@/hooks/useNow";
 import Link from "next/link";
@@ -226,6 +226,16 @@ export default function LeadsPage() {
                 Limpar
               </button>
             )}
+            <a
+              href={`${BASE_URL}/api/leads/export${params && Object.keys(params).length ? "?" + new URLSearchParams(params).toString() : ""}`}
+              style={{
+                fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)",
+                border: "none", borderRadius: "var(--r-md)", padding: "0 14px",
+                display: "flex", alignItems: "center", whiteSpace: "nowrap", textDecoration: "none",
+              }}
+            >
+              Exportar CSV
+            </a>
           </div>
         </div>
 
