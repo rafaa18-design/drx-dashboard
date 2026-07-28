@@ -1,4 +1,4 @@
-import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer } from "@/types";
+import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer, ScheduleWeek } from "@/types";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -71,6 +71,16 @@ export const api = {
     const qs = new URLSearchParams({ date, duration: String(duration), ...(lawyerId ? { lawyer_id: lawyerId } : {}) });
     return request<{ available_slots: string[] }>(`/api/appointments/calendar/availability?${qs}`);
   },
+
+  // Agenda — bloquear / abrir horários
+  getScheduleWeek: (start: string) =>
+    request<ScheduleWeek>(`/api/schedule/week?start=${start}`),
+  blockSlot: (body: { date: string; start_time: string; end_time: string }) =>
+    request(`/api/schedule/block`, { method: "POST", body: JSON.stringify(body) }),
+  openSlot: (body: { date: string; start_time: string; end_time: string }) =>
+    request(`/api/schedule/open`, { method: "POST", body: JSON.stringify(body) }),
+  deleteScheduleMarker: (eventId: string) =>
+    request(`/api/schedule/marker/${eventId}`, { method: "DELETE" }),
   createAppointment: (body: {
     lead_id: string; scheduled_at: string; duration_minutes?: number;
     appointment_type?: string; channel: "meet" | "whatsapp";

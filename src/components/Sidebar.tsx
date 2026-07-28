@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { href: "/leads",         label: "Leads",        Icon: UsersIcon },
   { href: "/conversations", label: "Atendimento",  Icon: ChatIcon },
   { href: "/appointments",  label: "Agendamentos", Icon: CalendarIcon },
+  { href: "/agenda",        label: "Agenda",       Icon: CalendarIcon },
   { href: "/aprovacao",     label: "Aprovação Manual", Icon: CheckBadgeIcon },
   { href: "/follow-up",     label: "Follow-up",    Icon: ClockIcon },
   { href: "/settings",      label: "Configurações",Icon: GearIcon },

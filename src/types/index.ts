@@ -84,3 +84,35 @@ export interface Appointment {
   notes: string | null;
   created_at: string;
 }
+
+// Agenda (bloquear / abrir horários) — ver app/routes/crm/schedule.py
+export type SlotState =
+  | "reuniao"          // agendamento do CRM
+  | "bloqueado"        // bloqueio manual feito aqui
+  | "ocupado"          // compromisso pessoal do advogado (só leitura)
+  | "aberto"           // abertura manual fora do expediente
+  | "livre"            // dentro do expediente, disponível
+  | "fora_expediente"; // fora do expediente ou fim de semana
+
+export interface ScheduleSlot {
+  time: string;
+  state: SlotState;
+  past: boolean;
+  label?: string;
+  lead_id?: string;
+  event_id?: string;
+}
+
+export interface ScheduleDay {
+  date: string;
+  weekday: string;
+  is_weekend: boolean;
+  is_today: boolean;
+  slots: ScheduleSlot[];
+}
+
+export interface ScheduleWeek {
+  start: string;
+  end: string;
+  days: ScheduleDay[];
+}
