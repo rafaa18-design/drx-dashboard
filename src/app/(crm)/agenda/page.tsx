@@ -32,13 +32,24 @@ function plus30(hhmm: string): string {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-const STYLE: Record<SlotState, { bg: string; color: string; border?: string }> = {
-  livre:           { bg: "var(--surface)",          color: "var(--ink-4)" },
-  fora_expediente: { bg: "var(--bg)",               color: "var(--ink-4)" },
-  reuniao:         { bg: "rgba(15,122,92,0.10)",    color: "var(--ok)" },
-  bloqueado:       { bg: "rgba(179,38,30,0.10)",    color: "var(--danger)" },
-  ocupado:         { bg: "rgba(92,114,144,0.12)",   color: "var(--ink-3)" },
-  aberto:          { bg: "rgba(180,83,9,0.10)",     color: "var(--warn)" },
+// Listras diagonais pra "fora do expediente": textura é um canal de leitura
+// independente da cor — é o que separa na hora esse estado do "livre" (branco
+// liso), que antes era quase idêntico.
+const HATCH =
+  "repeating-linear-gradient(45deg, #f2f3f5, #f2f3f5 5px, #e4e7ec 5px, #e4e7ec 10px)";
+
+// Cada estado carrega TRÊS sinais além da cor: um glifo de forma distinta, uma
+// barra sólida na lateral e o rótulo em texto. Isso não é excesso de zelo: o
+// validador de paleta mostrou que vermelho (#d03b3b) e verde (#0ca30c) ficam a
+// só ΔE 4.1 pra quem tem daltonismo deutan (~6% dos homens) — indistinguíveis
+// por cor. As formas ●/✕/✚/▪ e os rótulos resolvem sem depender do tom.
+const STYLE: Record<SlotState, { bg: string; color: string; glyph: string; accent?: string }> = {
+  livre:           { bg: "#FFFFFF", color: "var(--ink-4)", glyph: "" },
+  fora_expediente: { bg: HATCH,     color: "var(--ink-4)", glyph: "" },
+  reuniao:         { bg: "rgba(12,163,12,0.16)",  color: "#0a6b0a", glyph: "●", accent: "#0ca30c" },
+  bloqueado:       { bg: "rgba(208,59,59,0.18)",  color: "#9e2a2a", glyph: "✕", accent: "#d03b3b" },
+  aberto:          { bg: "rgba(250,178,25,0.30)", color: "#7a5200", glyph: "✚", accent: "#e09b00" },
+  ocupado:         { bg: "rgba(92,114,144,0.18)", color: "#44536b", glyph: "▪", accent: "#5c7290" },
 };
 
 const LEGEND: { state: SlotState; label: string }[] = [
@@ -176,12 +187,26 @@ export default function AgendaPage() {
         )}
 
         <div className="flex flex-wrap gap-3 px-4 sm:px-5 py-3" style={{ borderBottom: "1px solid var(--line-soft)" }}>
-          {LEGEND.map(({ state, label }) => (
-            <span key={state} className="flex items-center gap-1.5" style={{ fontSize: 12, color: "var(--ink-3)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 3, background: STYLE[state].bg, border: "1px solid var(--line)", display: "inline-block" }} />
-              {label}
-            </span>
-          ))}
+          {LEGEND.map(({ state, label }) => {
+            const s = STYLE[state];
+            return (
+              <span key={state} className="flex items-center gap-1.5" style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                <span
+                  style={{
+                    width: 22, height: 16, borderRadius: 3, background: s.bg,
+                    border: "1px solid var(--line)",
+                    boxShadow: s.accent ? `inset 3px 0 0 ${s.accent}` : undefined,
+                    color: s.color, fontSize: 9, fontWeight: 700, lineHeight: 1,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    paddingLeft: s.accent ? 3 : 0, flexShrink: 0,
+                  }}
+                >
+                  {s.glyph}
+                </span>
+                {label}
+              </span>
+            );
+          })}
         </div>
 
         {isLoading && (
@@ -231,10 +256,11 @@ export default function AgendaPage() {
                           style={{
                             background: s.bg,
                             color: s.color,
+                            boxShadow: s.accent ? `inset 3px 0 0 ${s.accent}` : undefined,
                             borderTop: "1px solid var(--line-soft)",
                             borderLeft: "1px solid var(--line-soft)",
-                            padding: "5px 6px",
-                            textAlign: "center",
+                            padding: text ? "5px 6px 5px 10px" : "5px 6px",
+                            textAlign: text ? "left" : "center",
                             height: 30,
                             cursor: clickable ? "pointer" : "default",
                             opacity: slot.past ? 0.45 : 1,
@@ -245,6 +271,9 @@ export default function AgendaPage() {
                             whiteSpace: "nowrap",
                           }}
                         >
+                          {s.glyph && (
+                            <span style={{ marginRight: 4, fontWeight: 700 }}>{s.glyph}</span>
+                          )}
                           {text}
                         </td>
                       );
