@@ -67,7 +67,7 @@ export const api = {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     return request<{ items: Appointment[]; total: number }>(`/api/appointments${qs}`);
   },
-  getAvailability: (date: string, duration = 60, lawyerId?: string) => {
+  getAvailability: (date: string, duration = 30, lawyerId?: string) => {
     const qs = new URLSearchParams({ date, duration: String(duration), ...(lawyerId ? { lawyer_id: lawyerId } : {}) });
     return request<{ available_slots: string[] }>(`/api/appointments/calendar/availability?${qs}`);
   },
