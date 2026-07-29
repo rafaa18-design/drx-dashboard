@@ -46,7 +46,7 @@ const HATCH =
 const STYLE: Record<SlotState, { bg: string; color: string; glyph: string; accent?: string }> = {
   livre:           { bg: "#FFFFFF", color: "var(--ink-4)", glyph: "" },
   fora_expediente: { bg: HATCH,     color: "var(--ink-4)", glyph: "" },
-  reuniao:         { bg: "rgba(12,163,12,0.16)",  color: "#0a6b0a", glyph: "●", accent: "#0ca30c" },
+  reuniao:         { bg: "rgba(12,163,12,0.10)",  color: "#0a6b0a", glyph: "●", accent: "#0ca30c" },
   bloqueado:       { bg: "rgba(208,59,59,0.18)",  color: "#9e2a2a", glyph: "✕", accent: "#d03b3b" },
   aberto:          { bg: "rgba(250,178,25,0.30)", color: "#7a5200", glyph: "✚", accent: "#e09b00" },
   ocupado:         { bg: "rgba(92,114,144,0.18)", color: "#44536b", glyph: "▪", accent: "#5c7290" },
@@ -239,7 +239,10 @@ export default function AgendaPage() {
                       const slot = d.slots[rowIdx];
                       if (!slot) return <td key={d.date} style={{ borderTop: "1px solid var(--line-soft)" }} />;
                       const s = STYLE[slot.state];
-                      const clickable = !slot.past && slot.state !== "ocupado";
+                      // Reunião fica clicável mesmo no passado — ver o histórico do lead
+                      // continua útil, diferente de bloquear/abrir um horário que já passou.
+                      const clickable =
+                        slot.state === "reuniao" ? Boolean(slot.lead_id) : !slot.past && slot.state !== "ocupado";
                       const text = slotText(slot);
                       return (
                         <td
@@ -263,7 +266,7 @@ export default function AgendaPage() {
                             textAlign: text ? "left" : "center",
                             height: 30,
                             cursor: clickable ? "pointer" : "default",
-                            opacity: slot.past ? 0.45 : 1,
+                            opacity: slot.past && slot.state !== "reuniao" ? 0.45 : 1,
                             fontWeight: text ? 600 : 400,
                             maxWidth: 130,
                             overflow: "hidden",
