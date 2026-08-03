@@ -9,7 +9,15 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  // ?expired=1 vem do request() em lib/api.ts quando o token de 24h vence —
+  // sem isso o usuario e jogado pra ca sem entender por que foi deslogado.
+  // Lido do window (e nao com useSearchParams) pra nao exigir Suspense e
+  // manter esta pagina prerenderizada estatica.
+  const [error, setError] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("expired")
+      ? "Sua sessão expirou. Entre novamente."
+      : ""
+  );
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {

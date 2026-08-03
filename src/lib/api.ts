@@ -17,6 +17,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
 
+  // Sessao expirada: o token dura 24h, mas ficava guardado no navegador depois
+  // disso. O layout so checa se EXISTE token, entao o CRM continuava abrindo
+  // normalmente e toda acao falhava em silencio com 401 — sem nenhum aviso.
+  // (caso real: o Tiago clicou 12x em "Desconectar" sem feedback nenhum).
+  if (res.status === 401 && typeof window !== "undefined") {
+    localStorage.removeItem("drx_token");
+    window.location.href = "/login?expired=1";
+    throw new Error("Sessão expirada. Entre novamente.");
+  }
+
   if (!res.ok) {
     const error = await res.text();
     throw new Error(error || `HTTP ${res.status}`);
