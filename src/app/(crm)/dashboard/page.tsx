@@ -72,21 +72,15 @@ export default function DashboardPage() {
   const funnelTotal = funnel?.stages.reduce((a: number, s: { count: number }) => a + s.count, 0) || 1;
   const funnelMax = funnel?.stages.reduce((a: number, s: { count: number }) => Math.max(a, s.count), 0) || 1;
 
-  // O backend ja devolve nessa ordem (futuros primeiro, passados depois),
-  // mas um sort() so por data crescente aqui desfazia isso: colocava
-  // reuniao antiga (passada, nunca marcada como concluida) acima da reuniao
-  // de hoje, que ficava jogada pro fim da lista. Replica a mesma regra do
-  // backend (futuro primeiro, mais proximo no topo; passado depois, mais
-  // recente no topo) em vez de so ordenar por data.
+  // "Proximos agendamentos" = so o que ainda vai acontecer. Reuniao passada
+  // que ninguem marcou como Realizada/Nao compareceu nao deve aparecer aqui
+  // (isso e outra tela — a de Agendamentos, com o historico completo). O
+  // backend ja devolve nessa ordem (futuros primeiro, ascendente), entao só
+  // filtrar preserva a ordem certa sem precisar reordenar de novo.
   const nowMs = Date.now();
-  const upcoming = [...(appts?.items ?? [])].sort((a, b) => {
-    const ta = new Date(a.scheduled_at).getTime();
-    const tb = new Date(b.scheduled_at).getTime();
-    const aFuture = ta >= nowMs;
-    const bFuture = tb >= nowMs;
-    if (aFuture !== bFuture) return aFuture ? -1 : 1;
-    return aFuture ? ta - tb : tb - ta;
-  });
+  const upcoming = (appts?.items ?? []).filter(
+    (a) => new Date(a.scheduled_at).getTime() >= nowMs
+  );
 
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
