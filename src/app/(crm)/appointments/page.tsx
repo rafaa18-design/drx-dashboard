@@ -7,6 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
 import { NewAppointmentModal } from "@/components/NewAppointmentModal";
+import Link from "next/link";
 import type { Appointment } from "@/types";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -181,7 +182,7 @@ export default function AppointmentsPage() {
                 return (
                   <tr key={appt.id} className="row-hover">
                     <td>
-                      <div className="flex items-center gap-3">
+                      <Link href={`/leads/${appt.lead_id}`} className="flex items-center gap-3" style={{ textDecoration: "none" }}>
                         <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 12 }}>
                           {initials(name)}
                         </div>
@@ -189,7 +190,7 @@ export default function AppointmentsPage() {
                           <p style={{ fontWeight: 600, color: "var(--ink)" }}>{name}</p>
                           {appt.lead_phone && appt.lead_name && <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{formatPhone(appt.lead_phone)}</p>}
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td style={{ fontWeight: 600, color: "var(--ink-2)" }}>{formatWhen(appt.scheduled_at)}</td>
                     <td style={{ fontSize: 13, color: "var(--ink-3)" }}>{TYPE_LABELS[appt.appointment_type ?? ""] ?? appt.appointment_type ?? "—"}</td>
@@ -212,7 +213,7 @@ export default function AppointmentsPage() {
             return (
               <div key={appt.id} className="p-4" style={{ borderTop: idx === 0 ? "none" : "1px solid var(--line-soft)" }}>
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/leads/${appt.lead_id}`} className="flex items-center gap-3" style={{ textDecoration: "none" }}>
                     <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 13 }}>
                       {initials(name)}
                     </div>
@@ -220,7 +221,7 @@ export default function AppointmentsPage() {
                       <p style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{name}</p>
                       {appt.lead_phone && appt.lead_name && <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{appt.lead_phone}</p>}
                     </div>
-                  </div>
+                  </Link>
                   <StatusSelect appt={appt} />
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>{formatWhen(appt.scheduled_at)}</p>
