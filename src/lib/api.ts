@@ -64,10 +64,8 @@ export const api = {
   approveLead: (id: string) =>
     request<{
       lead_id: string;
-      appointment_id: string;
-      scheduled_at: string;
-      formatted_datetime: string;
-      calendar_event_created: boolean;
+      data: string;
+      horarios_oferecidos: string[];
       whatsapp_message_sent: boolean;
       message_text: string;
     }>(`/api/leads/${id}/approve`, { method: "POST" }),

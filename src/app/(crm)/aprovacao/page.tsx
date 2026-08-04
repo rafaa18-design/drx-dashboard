@@ -71,10 +71,11 @@ function ApprovalCard({ lead }: { lead: Lead }) {
   const approve = useMutation({
     mutationFn: () => api.approveLead(lead.id),
     onSuccess: (data) => {
-      const whatsapp = data.whatsapp_message_sent
-        ? "Mensagem de confirmação enviada pro WhatsApp do lead."
-        : "Reunião marcada, mas a mensagem automática pro WhatsApp não pôde ser enviada agora (verifique a credencial da uazapi) — avise o cliente manualmente.";
-      setResult({ ok: true, text: `Reunião marcada para ${data.formatted_datetime}. ${whatsapp}` });
+      const horarios = data.horarios_oferecidos.join(", ");
+      const text = data.whatsapp_message_sent
+        ? `Horários enviados pro WhatsApp do lead: ${horarios}. Assim que ela escolher, o agente marca a reunião automaticamente.`
+        : `Reunião não pôde ser marcada: a mensagem oferecendo os horários (${horarios}) não pôde ser enviada agora (verifique a credencial da uazapi) — avise o cliente manualmente.`;
+      setResult({ ok: data.whatsapp_message_sent, text });
       qc.invalidateQueries({ queryKey: ["leads"] });
     },
     onError: (err: Error) => {
@@ -203,7 +204,8 @@ export default function ManualApprovalPage() {
       <p style={{ fontSize: 14, color: "var(--ink-3)" }}>
         Leads com score baixo (frio ou desqualificado) que o Tiago avaliou não terem qualificação
         suficiente pra reunião automática — o agente encerrou a conversa dizendo que ia analisar o
-        caso. Aprovar aqui marca uma reunião automaticamente e já confirma com o cliente pelo WhatsApp.
+        caso. Aprovar aqui manda os horários disponíveis pro WhatsApp do lead; assim que ela escolher,
+        o agente marca a reunião automaticamente, igual no atendimento normal.
       </p>
 
       <div className="flex items-center gap-2">
