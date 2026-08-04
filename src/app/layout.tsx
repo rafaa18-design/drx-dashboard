@@ -5,6 +5,9 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "DRX Advogados — CRM",
   description: "Gestão de leads e atendimento",
+  icons: {
+    icon: "/logo-oficial.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
