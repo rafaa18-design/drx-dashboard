@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "DRX Advogados — CRM",
   description: "Gestão de leads e atendimento",
   icons: {
-    icon: "/logo-oficial.png",
+    icon: "/logo2.jpg",
   },
 };
 
