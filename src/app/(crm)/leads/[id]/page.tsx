@@ -25,6 +25,70 @@ const CASE_LABELS: Record<string, string> = {
   permanent_ban: "Banimento permanente", temporary_restriction: "Restrição temporária", warning_only: "Apenas aviso",
 };
 
+// Traduz os sinais reconhecidos pelo qualify_lead (matriz oficial + apelidos
+// em app/tools/drx/qualification.py) pra pt-BR. Sinal fora dessa lista e
+// nome inventado pelo modelo, que a matriz de score ja descarta silenciosamente
+// — aqui so cai no fallback de humanizeSignal (formatado, mas sem traducao).
+const SIGNAL_LABELS: Record<string, string> = {
+  // Alcance
+  followers_300k_plus: "300 mil+ seguidores",
+  followers_100k_to_300k: "100 mil–300 mil seguidores",
+  followers_10k_to_100k: "10 mil–100 mil seguidores",
+  followers_5k_to_10k: "5 mil–10 mil seguidores",
+  followers_below_5k: "Menos de 5 mil seguidores",
+  followers_1M_plus: "1 milhão+ seguidores",
+  followers_less_than_10k: "Menos de 10 mil seguidores",
+  followers_under_10k: "Menos de 10 mil seguidores",
+  followers_below_10k: "Menos de 10 mil seguidores",
+  followers_1k_to_10k: "Menos de 10 mil seguidores",
+  low_followers: "Poucos seguidores",
+  few_followers: "Poucos seguidores",
+
+  // Profissionalismo e monetização
+  professional_monetizer: "Profissional que monetiza",
+  high_ticket_profession: "Profissão de alto ticket",
+  digital_marketing: "Marketing digital",
+  adult_content_monetized: "Conteúdo adulto monetizado",
+  professional_bio_with_link: "Bio com link comercial",
+  verified_badge: "Selo verificado",
+  monetization_history: "Histórico de monetização",
+  professional_use: "Uso profissional",
+  hobby_use: "Uso pessoal/hobby",
+  personal_use: "Uso pessoal/hobby",
+  personal_account: "Uso pessoal/hobby",
+  personal_profile: "Uso pessoal/hobby",
+  hobby_account: "Uso pessoal/hobby",
+  not_professional: "Uso pessoal/hobby",
+  professional_account: "Uso profissional",
+  professional_profile: "Uso profissional",
+  business_use: "Uso profissional",
+  account_generates_income: "Uso profissional",
+  generates_income: "Uso profissional",
+
+  // Prejuízo financeiro
+  monthly_loss_above_5k: "Prejuízo acima de R$5 mil/mês",
+  monthly_loss_1k_to_5k: "Prejuízo de R$1 mil–5 mil/mês",
+  monthly_loss_below_1k: "Prejuízo abaixo de R$1 mil/mês",
+  no_financial_loss: "Sem prejuízo financeiro",
+  significant_financial_loss: "Prejuízo financeiro alto",
+  high_financial_loss: "Prejuízo financeiro alto",
+  high_monthly_loss: "Prejuízo financeiro alto",
+
+  // Qualidade do perfil
+  blank_or_personal_bio: "Bio em branco ou pessoal",
+  no_monetization_signal: "Sem sinal de monetização",
+  no_monetization: "Sem sinal de monetização",
+
+  // Gravidade do problema
+  permanent_ban: "Banimento permanente",
+  temporary_restriction: "Restrição temporária",
+  warning_only: "Apenas aviso",
+
+  // Origem
+  referral_lead: "Veio por indicação",
+  existing_client: "Já é cliente",
+};
+
 const SOURCE_LABELS: Record<string, string> = {
   ad: "Anúncio", referral: "Indicação", existing_client: "Cliente existente", unknown: "Desconhecida",
 };
@@ -86,7 +150,7 @@ function scoreColor(level: string | null): string {
 }
 
 function humanizeSignal(s: string): string {
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return SIGNAL_LABELS[s] ?? s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function formatDateTime(iso: string): string {
