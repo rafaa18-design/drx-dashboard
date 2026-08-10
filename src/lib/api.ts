@@ -69,6 +69,12 @@ export const api = {
       whatsapp_message_sent: boolean;
       message_text: string;
     }>(`/api/leads/${id}/approve`, { method: "POST" }),
+  rejectLead: (id: string) =>
+    request<{
+      lead_id: string;
+      whatsapp_message_sent: boolean;
+      message_text: string;
+    }>(`/api/leads/${id}/reject`, { method: "POST" }),
 
   // Appointments
   getAppointments: (params?: Record<string, string>) => {

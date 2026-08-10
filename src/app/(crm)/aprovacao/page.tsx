@@ -90,16 +90,31 @@ function ApprovalCard({ lead }: { lead: Lead }) {
   });
 
   const reject = useMutation({
-    // Marca como "lost" em vez de excluir — se a lead escrever de novo depois,
-    // o sistema precisa lembrar que ela já foi rejeitada (excluir apagava essa
-    // memória e deixava o agente oferecer reunião de novo pra quem já tinha
-    // sido reprovado).
-    mutationFn: () => api.updateLead(lead.id, { commercial_status: "lost" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+    // Marca como "lost" e manda a mensagem de despedida pro WhatsApp do lead
+    // (endpoint /reject, não o PATCH genérico) — se a lead escrever de novo
+    // depois, o gate _is_lead_rejected (agentbench.py) garante que o agente
+    // nunca mais responde automaticamente.
+    mutationFn: () => api.rejectLead(lead.id),
+    onSuccess: (data) => {
+      const text = data.whatsapp_message_sent
+        ? "Lead reprovada e avisada por WhatsApp."
+        : "Lead reprovada, mas a mensagem de despedida não pôde ser enviada agora (verifique a credencial da uazapi) — avise o cliente manualmente.";
+      setResult({ ok: data.whatsapp_message_sent, text });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    },
+    onError: (err: Error) => {
+      let detail = err.message;
+      try {
+        detail = JSON.parse(err.message).detail ?? err.message;
+      } catch {
+        /* mensagem já é texto puro */
+      }
+      setResult({ ok: false, text: detail });
+    },
   });
 
   function handleReject() {
-    if (!confirm(`Reprovar ${displayName}? A lead sai da fila e o agente não vai mais oferecer reunião pra ela automaticamente.`)) return;
+    if (!confirm(`Reprovar ${displayName}? A lead recebe uma mensagem de despedida por WhatsApp e o agente não vai mais responder ela.`)) return;
     reject.mutate();
   }
 
