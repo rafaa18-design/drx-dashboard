@@ -20,19 +20,19 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const LEVEL_LABELS: Record<string, string> = {
-  auto_meeting: "Auto",
-  hot:          "Quente",
-  warm:         "Morno",
-  cold:         "Frio",
-  disqualified: "Desqualificado",
+  A: "Classe A",
+  B: "Classe B",
+  C: "Classe C",
+  D: "Classe D",
+  BLOQUEADO: "Bloqueado",
 };
 
 const LEVEL_BADGE: Record<string, string> = {
-  auto_meeting: "badge-auto",
-  hot:          "badge-hot",
-  warm:         "badge-warm",
-  cold:         "badge-cold",
-  disqualified: "badge-disqualified",
+  A: "badge-auto",
+  B: "badge-hot",
+  C: "badge-warm",
+  D: "badge-cold",
+  BLOQUEADO: "badge-disqualified",
 };
 
 const CASE_LABELS: Record<string, string> = {
@@ -80,10 +80,11 @@ function platformColor(p: string | null | undefined) {
 
 function scoreColor(level: string | null): string {
   switch (level) {
-    case "auto_meeting": return "var(--ok)";
-    case "hot":          return "var(--danger)";
-    case "warm":         return "var(--warn)";
-    case "cold":         return "var(--ink-3)";
+    case "A": return "var(--ok)";
+    case "B": return "var(--accent)";
+    case "C": return "var(--warn)";
+    case "D": return "var(--ink-3)";
+    case "BLOQUEADO": return "var(--danger)";
     default:             return "var(--ink-4)";
   }
 }

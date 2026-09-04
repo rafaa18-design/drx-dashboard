@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
-import type { Appointment, Conversation, Lead } from "@/types";
+import type { Appointment, Conversation, Lead, QualificationEvaluation } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Novo", contacted: "Contactado", qualified: "Qualificado", pending_approval: "Aguardando aprovação", proposal: "Proposta",
@@ -14,11 +14,11 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const LEVEL_LABELS: Record<string, string> = {
-  auto_meeting: "Reunião automática", hot: "Quente", warm: "Morno", cold: "Frio", disqualified: "Desqualificado",
+  A: "Classe A", B: "Classe B", C: "Classe C", D: "Classe D", BLOQUEADO: "Bloqueado",
 };
 
 const LEVEL_BADGE: Record<string, string> = {
-  auto_meeting: "badge-auto", hot: "badge-hot", warm: "badge-warm", cold: "badge-cold", disqualified: "badge-disqualified",
+  A: "badge-auto", B: "badge-hot", C: "badge-warm", D: "badge-cold", BLOQUEADO: "badge-disqualified",
 };
 
 const CASE_LABELS: Record<string, string> = {
@@ -141,10 +141,11 @@ function platformColor(p: string | null): string {
 
 function scoreColor(level: string | null): string {
   switch (level) {
-    case "auto_meeting": return "var(--ok)";
-    case "hot": return "var(--danger)";
-    case "warm": return "var(--warn)";
-    case "cold": return "var(--ink-3)";
+    case "A": return "var(--ok)";
+    case "B": return "var(--accent)";
+    case "C": return "var(--warn)";
+    case "D": return "var(--ink-3)";
+    case "BLOQUEADO": return "var(--danger)";
     default: return "var(--ink-4)";
   }
 }
@@ -205,6 +206,12 @@ export default function LeadDetailPage() {
     enabled: !!lead,
   });
 
+  const { data: qualificationHistory = [] } = useQuery({
+    queryKey: ["lead-qualification-history", id],
+    queryFn: () => api.getQualificationHistory(id) as Promise<QualificationEvaluation[]>,
+    enabled: !!lead,
+  });
+
   const [toggling, setToggling] = useState(false);
   const toggleAI = useMutation({
     mutationFn: () => api.toggleAI(id),
@@ -242,8 +249,9 @@ export default function LeadDetailPage() {
   const aiOn = lead.ai_active !== false;
   const sc = scoreColor(lead.qualification_level);
 
-  const signalsRaw = lead.qualification_signals as { signals?: unknown } | null;
-  const signals = Array.isArray(signalsRaw?.signals) ? (signalsRaw!.signals as string[]) : [];
+  const qualificationDetails = lead.qualification_signals as { field_points?: Record<string, number> } | null;
+  const fieldPoints = qualificationDetails?.field_points ?? {};
+  const dimensions = lead.qualification_dimensions ?? {};
 
   const appts = (apptData?.items ?? []).filter((a) => a.lead_id === id);
   const convs = (convData?.items ?? []).filter((c) => c.lead_id === id);
@@ -304,22 +312,72 @@ export default function LeadDetailPage() {
                 <div style={{ height: "100%", width: `${Math.min(100, Math.max(0, lead.qualification_score))}%`, background: sc, transition: "width 0.6s ease" }} />
               </div>
 
-              {signals.length > 0 ? (
+              {Object.keys(dimensions).length > 0 ? (
                 <>
-                  <p style={{ fontSize: 12, color: "var(--ink-4)", marginBottom: 10 }}>Sinais identificados pelo Tiago (IA)</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2" style={{ marginBottom: 16 }}>
+                    {[
+                      ["problem_viability", "Problema", 25],
+                      ["economic_impact", "Impacto", 25],
+                      ["priority", "Prioridade", 25],
+                      ["capacity_decision", "Capacidade", 15],
+                      ["engagement_trust", "Confiança", 10],
+                    ].map(([key, label, max]) => (
+                      <div key={String(key)} style={{ padding: "10px 9px", background: "var(--bg)", border: "1px solid var(--line-soft)", borderRadius: "var(--r-md)" }}>
+                        <p style={{ fontSize: 10, color: "var(--ink-4)" }}>{label}</p>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", marginTop: 3 }}>{dimensions[String(key)] ?? 0}/{max}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--ink-4)", marginBottom: 10 }}>Campos pontuados</p>
                   <div className="flex flex-wrap gap-2">
-                    {signals.map((s) => (
-                      <span key={s} style={{ fontSize: 12, color: "var(--ink-2)", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: "var(--r-full)", padding: "5px 12px" }}>
-                        {humanizeSignal(s)}
+                    {Object.entries(fieldPoints).map(([field, points]) => (
+                      <span key={field} style={{ fontSize: 12, color: "var(--ink-2)", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: "var(--r-full)", padding: "5px 12px" }}>
+                        {humanizeSignal(field)}: {points}
                       </span>
                     ))}
                   </div>
                 </>
               ) : (
-                <p style={{ fontSize: 13, color: "var(--ink-4)" }}>Nenhum sinal de qualificação registrado.</p>
+                <p style={{ fontSize: 13, color: "var(--ink-4)" }}>Nenhuma avaliação DRX-LS-1.0 registrada.</p>
               )}
+
+              <div className="flex flex-wrap gap-2" style={{ marginTop: 16 }}>
+                {lead.qualification_version && <span className="badge-pill">{lead.qualification_version}</span>}
+                {lead.hard_block && <span className="badge-pill badge-disqualified">Bloqueio: {(lead.hard_block_reasons ?? []).join(", ")}</span>}
+                {lead.review_required && <span className="badge-pill badge-warm">Revisão: {(lead.review_flags ?? []).join(", ")}</span>}
+                {lead.manual_override && <span className="badge-pill badge-auto">Override por {lead.manual_override_by}</span>}
+              </div>
+              {lead.manual_override_reason && <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 10 }}>Justificativa: {lead.manual_override_reason}</p>}
+              <p style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 12 }}>
+                Seguidores e selo verificado são segmentação e não alteram o score.
+              </p>
             </div>
           </div>
+
+          {qualificationHistory.length > 0 && (
+            <div className="drx-fadeup dc-card" style={{ animationDelay: "90ms" }}>
+              <SectionHeader title="Histórico de qualificação" side={<span className="dc-count-pill">{qualificationHistory.length}</span>} />
+              <div>
+                {qualificationHistory.map((evaluation, index) => (
+                  <div key={evaluation.id} className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3" style={{ borderTop: index ? "1px solid var(--line-soft)" : "none" }}>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                        {evaluation.lead_class} · {evaluation.score_raw}/100
+                      </p>
+                      <p style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 2 }}>
+                        {evaluation.score_version} · {formatDateTime(evaluation.evaluated_at)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      {evaluation.hard_block && <span className="badge-pill badge-disqualified">{evaluation.block_reasons.join(", ")}</span>}
+                      {evaluation.review_required && <span className="badge-pill badge-warm">{evaluation.review_flags.join(", ")}</span>}
+                      <span className="badge-pill">{evaluation.next_action}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Descrição do caso */}
           {lead.case_description && (
@@ -394,6 +452,12 @@ export default function LeadDetailPage() {
             <FactRow label="Origem" value={source ? (SOURCE_LABELS[source] ?? source) : "—"} />
             <FactRow label="Área do caso" value={caseType ? (CASE_LABELS[caseType] ?? caseType) : "—"} />
             <FactRow label="E-mail" value={email ?? "—"} />
+            <FactRow label="Próxima ação" value={lead.qualification_next_action ?? "—"} />
+            <FactRow label="Tipo de conta" value={lead.account_type ?? "—"} />
+            <FactRow label="Monetização" value={(lead.monetization_type ?? []).join(", ") || "—"} />
+            <FactRow label="Seguidores" value={lead.followers_count?.toLocaleString("pt-BR") ?? "—"} />
+            <FactRow label="Selo verificado" value={lead.verified_badge == null ? "—" : (lead.verified_badge ? "Sim" : "Não")} />
+            {lead.qualification_evaluated_at && <FactRow label="Qualificado em" value={formatDateTime(lead.qualification_evaluated_at)} />}
             <FactRow label="Follow-ups enviados" value={lead.follow_up_count} />
             {lead.follow_up_last_sent_at && <FactRow label="Último follow-up" value={formatDateTime(lead.follow_up_last_sent_at)} />}
             <FactRow label="Criado em" value={formatDateTime(lead.created_at)} />

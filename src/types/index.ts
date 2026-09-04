@@ -1,3 +1,22 @@
+export type QualificationClass = "A" | "B" | "C" | "D" | "BLOQUEADO";
+export type QualificationAction = "meeting" | "qualify" | "nurture" | "close" | "blocked_review";
+
+export interface QualificationEvaluation {
+  id: string;
+  score_version: string;
+  score_raw: number;
+  lead_class: QualificationClass;
+  next_action: QualificationAction;
+  hard_block: boolean;
+  review_required: boolean;
+  answers: Record<string, unknown>;
+  field_points: Record<string, number>;
+  dimension_scores: Record<string, number>;
+  block_reasons: string[];
+  review_flags: string[];
+  evaluated_at: string;
+}
+
 export interface Lead {
   id: string;
   phone: string;
@@ -7,8 +26,30 @@ export interface Lead {
   case_type: string | null;
   case_description: string | null;
   qualification_score: number;
-  qualification_level: "hot" | "warm" | "cold" | "disqualified" | null;
+  score_raw: number;
+  qualification_level: QualificationClass | null;
+  lead_class: QualificationClass | null;
   qualification_signals: Record<string, unknown> | null;
+  qualification_version: string | null;
+  score_version: string | null;
+  qualification_dimensions: Record<string, number> | null;
+  qualification_answers: Record<string, unknown> | null;
+  qualification_next_action: QualificationAction | null;
+  next_action: QualificationAction | null;
+  qualification_evaluated_at: string | null;
+  evaluated_at: string | null;
+  hard_block: boolean;
+  hard_block_reasons: string[] | null;
+  review_required: boolean;
+  review_flags: string[] | null;
+  followers_count: number | null;
+  verified_badge: boolean | null;
+  account_type: "personal" | "professional" | "store" | "influencer" | "company" | null;
+  monetization_type: string[] | null;
+  manual_override: boolean;
+  manual_override_reason: string | null;
+  manual_override_by: string | null;
+  manual_override_at: string | null;
   commercial_status: "new" | "contacted" | "qualified" | "pending_approval" | "proposal" | "won" | "follow_up" | "lost";
   ai_active: boolean;
   source: string;

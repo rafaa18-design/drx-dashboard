@@ -9,19 +9,19 @@ import { useNow } from "@/hooks/useNow";
 import type { Lead } from "@/types";
 
 const LEVEL_LABELS: Record<string, string> = {
-  auto_meeting: "Auto",
-  hot:          "Quente",
-  warm:         "Morno",
-  cold:         "Frio",
-  disqualified: "Desqualificado",
+  A: "Classe A",
+  B: "Classe B",
+  C: "Classe C",
+  D: "Classe D",
+  BLOQUEADO: "Bloqueado",
 };
 
 const LEVEL_BADGE: Record<string, string> = {
-  auto_meeting: "badge-auto",
-  hot:          "badge-hot",
-  warm:         "badge-warm",
-  cold:         "badge-cold",
-  disqualified: "badge-disqualified",
+  A: "badge-auto",
+  B: "badge-hot",
+  C: "badge-warm",
+  D: "badge-cold",
+  BLOQUEADO: "badge-disqualified",
 };
 
 const CASE_LABELS: Record<string, string> = {
@@ -57,9 +57,11 @@ function formatAgo(dateStr: string): string {
 
 function scoreColor(level: string | null): string {
   switch (level) {
-    case "hot":  return "var(--danger)";
-    case "warm": return "var(--warn)";
-    case "cold": return "var(--ink-3)";
+    case "A": return "var(--ok)";
+    case "B": return "var(--accent)";
+    case "C": return "var(--warn)";
+    case "D": return "var(--ink-3)";
+    case "BLOQUEADO": return "var(--danger)";
     default:     return "var(--ink-4)";
   }
 }
@@ -67,9 +69,10 @@ function scoreColor(level: string | null): string {
 function ApprovalCard({ lead }: { lead: Lead }) {
   const qc = useQueryClient();
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [reason, setReason] = useState("");
 
   const approve = useMutation({
-    mutationFn: () => api.approveLead(lead.id),
+    mutationFn: () => api.approveLead(lead.id, reason),
     onSuccess: (data) => {
       const horarios = data.horarios_oferecidos.join(", ");
       const text = data.whatsapp_message_sent
@@ -161,6 +164,12 @@ function ApprovalCard({ lead }: { lead: Lead }) {
         </div>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        {lead.hard_block && <span className="badge-pill badge-disqualified">Bloqueio: {(lead.hard_block_reasons ?? []).join(", ")}</span>}
+        {lead.review_required && <span className="badge-pill badge-warm">Revisão: {(lead.review_flags ?? []).join(", ")}</span>}
+        {lead.qualification_version && <span className="badge-pill">{lead.qualification_version}</span>}
+      </div>
+
       {result && (
         <div
           style={{
@@ -174,6 +183,17 @@ function ApprovalCard({ lead }: { lead: Lead }) {
       )}
 
       {!(result?.ok) && (
+        <div className="space-y-2">
+          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink-3)" }}>
+            Justificativa obrigatória do override
+          </label>
+          <textarea
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Explique por que a ação recomendada será alterada..."
+            rows={2}
+            style={{ width: "100%", resize: "vertical", fontSize: 13, color: "var(--ink)", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: "var(--r-md)", padding: "9px 11px", outline: "none" }}
+          />
         <div className="flex justify-end gap-2">
           <button
             onClick={handleReject}
@@ -188,15 +208,16 @@ function ApprovalCard({ lead }: { lead: Lead }) {
           </button>
           <button
             onClick={() => approve.mutate()}
-            disabled={approve.isPending || reject.isPending}
+            disabled={approve.isPending || reject.isPending || !reason.trim()}
             style={{
               fontSize: 13, fontWeight: 600, color: "#FFFFFF", background: "var(--ink)",
               border: "none", borderRadius: "var(--r-md)", padding: "9px 18px",
-              cursor: approve.isPending ? "wait" : "pointer", opacity: approve.isPending ? 0.6 : 1,
+              cursor: approve.isPending ? "wait" : "pointer", opacity: (approve.isPending || !reason.trim()) ? 0.6 : 1,
             }}
           >
-            {approve.isPending ? "Aprovando..." : "Aprovar e marcar reunião"}
+            {approve.isPending ? "Aprovando..." : "Aprovar e liberar reunião"}
           </button>
+        </div>
         </div>
       )}
     </div>
@@ -217,10 +238,8 @@ export default function ManualApprovalPage() {
   return (
     <div className="space-y-6 animate-fadeIn">
       <p style={{ fontSize: 14, color: "var(--ink-3)" }}>
-        Leads com score baixo (frio ou desqualificado) que o Tiago avaliou não terem qualificação
-        suficiente pra reunião automática — o agente encerrou a conversa dizendo que ia analisar o
-        caso. Aprovar aqui manda os horários disponíveis pro WhatsApp do lead; assim que ela escolher,
-        o agente marca a reunião automaticamente, igual no atendimento normal.
+        Leads com bloqueio duro ou risco que exige revisão humana na DRX-LS-1.0. Aprovar altera a ação
+        recomendada, registra usuário, data e justificativa e envia horários disponíveis ao WhatsApp.
       </p>
 
       <div className="flex items-center gap-2">

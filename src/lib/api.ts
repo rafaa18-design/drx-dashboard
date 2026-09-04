@@ -1,4 +1,4 @@
-import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer, ScheduleWeek } from "@/types";
+import type { Appointment, Lead, Conversation, FollowUpRow, Lawyer, QualificationEvaluation, ScheduleWeek } from "@/types";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -55,20 +55,25 @@ export const api = {
     return request<{ items: Lead[]; total: number }>(`/api/leads${qs}`);
   },
   getLead: (id: string) => request<Lead>(`/api/leads/${id}`),
+  getQualificationHistory: (id: string) =>
+    request<QualificationEvaluation[]>(`/api/leads/${id}/qualification-history`),
   updateLead: (id: string, body: unknown) =>
     request(`/api/leads/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   toggleAI: (id: string) =>
     request(`/api/leads/${id}/toggle-ai`, { method: "POST" }),
   deleteLead: (id: string) =>
     request(`/api/leads/${id}`, { method: "DELETE" }),
-  approveLead: (id: string) =>
+  approveLead: (id: string, reason: string) =>
     request<{
       lead_id: string;
       data: string;
       horarios_oferecidos: string[];
       whatsapp_message_sent: boolean;
       message_text: string;
-    }>(`/api/leads/${id}/approve`, { method: "POST" }),
+      manual_override: boolean;
+      manual_override_reason: string;
+      manual_override_by: string;
+    }>(`/api/leads/${id}/approve`, { method: "POST", body: JSON.stringify({ reason }) }),
   rejectLead: (id: string) =>
     request<{
       lead_id: string;

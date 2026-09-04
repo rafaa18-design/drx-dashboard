@@ -43,15 +43,16 @@ function formatAgo(dateStr: string): string {
 }
 
 const LEVEL_LABELS: Record<string, string> = {
-  hot: "Quente", warm: "Morno", cold: "Frio", auto_meeting: "Auto", disqualified: "Desqualif.",
+  A: "Classe A", B: "Classe B", C: "Classe C", D: "Classe D", BLOQUEADO: "Bloqueado",
 };
 
 function scoreStyle(level: string | null): { bg: string; text: string } {
   switch (level) {
-    case "auto_meeting": return { bg: "rgba(15,122,92,0.10)",  text: "var(--ok)" };
-    case "hot":          return { bg: "rgba(179,38,30,0.08)",  text: "var(--danger)" };
-    case "warm":         return { bg: "rgba(180,83,9,0.08)",   text: "var(--warn)" };
-    case "cold":         return { bg: "rgba(92,114,144,0.10)", text: "var(--ink-3)" };
+    case "A": return { bg: "rgba(15,122,92,0.10)", text: "var(--ok)" };
+    case "B": return { bg: "var(--accent-soft)", text: "var(--accent)" };
+    case "C": return { bg: "rgba(180,83,9,0.08)", text: "var(--warn)" };
+    case "D": return { bg: "rgba(92,114,144,0.10)", text: "var(--ink-3)" };
+    case "BLOQUEADO": return { bg: "rgba(179,38,30,0.08)", text: "var(--danger)" };
     default:             return { bg: "rgba(156,172,192,0.10)", text: "var(--ink-4)" };
   }
 }
@@ -330,11 +331,11 @@ export default function KanbanPage() {
         <input className="filter-input" placeholder="Buscar por nome ou telefone…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 260, maxWidth: "100%" }} />
         <select className="filter-select" value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)}>
           <option value="">Todos os níveis</option>
-          <option value="hot">Quente</option>
-          <option value="warm">Morno</option>
-          <option value="cold">Frio</option>
-          <option value="auto_meeting">Auto-agendado</option>
-          <option value="disqualified">Desqualificado</option>
+          <option value="A">Classe A</option>
+          <option value="B">Classe B</option>
+          <option value="C">Classe C</option>
+          <option value="D">Classe D</option>
+          <option value="BLOQUEADO">Bloqueado</option>
         </select>
         {hasFilter && (
           <button

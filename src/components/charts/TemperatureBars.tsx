@@ -6,11 +6,11 @@ import { useCountUp } from "@/hooks/useCountUp";
 
 /** Níveis de qualificação — mesmas cores de status usadas no Funil e em Leads. */
 const LEVELS: { key: string; label: string; color: string; desc: string }[] = [
-  { key: "auto_meeting", label: "Auto-agendado", color: "#0F7A5C", desc: "score 95–100" },
-  { key: "hot",          label: "Quente",        color: "#B3261E", desc: "score 60–90" },
-  { key: "warm",         label: "Morno",         color: "#B45309", desc: "score 35–55" },
-  { key: "cold",         label: "Frio",          color: "#5C7290", desc: "score 5–25" },
-  { key: "disqualified", label: "Desqualificado", color: "#9CACC0", desc: "fora do perfil" },
+  { key: "A", label: "Classe A", color: "#0F7A5C", desc: "70–100" },
+  { key: "B", label: "Classe B", color: "#2563A8", desc: "50–69" },
+  { key: "C", label: "Classe C", color: "#B45309", desc: "30–49" },
+  { key: "D", label: "Classe D", color: "#5C7290", desc: "0–29" },
+  { key: "BLOQUEADO", label: "Bloqueado", color: "#B3261E", desc: "B01–B04" },
 ];
 
 /** Distribuição da base por temperatura de qualificação (barras horizontais). */
