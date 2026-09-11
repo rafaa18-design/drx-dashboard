@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
+import { describeReviewFlags } from "@/lib/qualification";
 import { useNow } from "@/hooks/useNow";
 import type { Lead } from "@/types";
 
@@ -166,7 +167,9 @@ function ApprovalCard({ lead }: { lead: Lead }) {
 
       <div className="flex flex-wrap gap-2">
         {lead.hard_block && <span className="badge-pill badge-disqualified">Bloqueio: {(lead.hard_block_reasons ?? []).join(", ")}</span>}
-        {lead.review_required && <span className="badge-pill badge-warm">Revisão: {(lead.review_flags ?? []).join(", ")}</span>}
+        {lead.review_required && describeReviewFlags(lead.review_flags).map((review) => (
+          <span key={review} className="review-detail">Revisão {review}</span>
+        ))}
         {lead.qualification_version && <span className="badge-pill">{lead.qualification_version}</span>}
       </div>
 

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { describeReviewFlags } from "@/lib/qualification";
 import { formatPhone } from "@/lib/phone";
 import type { Appointment, Conversation, Lead, QualificationEvaluation } from "@/types";
 
@@ -344,7 +345,9 @@ export default function LeadDetailPage() {
               <div className="flex flex-wrap gap-2" style={{ marginTop: 16 }}>
                 {lead.qualification_version && <span className="badge-pill">{lead.qualification_version}</span>}
                 {lead.hard_block && <span className="badge-pill badge-disqualified">Bloqueio: {(lead.hard_block_reasons ?? []).join(", ")}</span>}
-                {lead.review_required && <span className="badge-pill badge-warm">Revisão: {(lead.review_flags ?? []).join(", ")}</span>}
+                {lead.review_required && describeReviewFlags(lead.review_flags).map((review) => (
+                  <span key={review} className="review-detail">Revisão {review}</span>
+                ))}
                 {lead.manual_override && <span className="badge-pill badge-auto">Override por {lead.manual_override_by}</span>}
               </div>
               {lead.manual_override_reason && <p style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 10 }}>Justificativa: {lead.manual_override_reason}</p>}
@@ -370,7 +373,9 @@ export default function LeadDetailPage() {
                     </div>
                     <div className="flex gap-2 flex-wrap justify-end">
                       {evaluation.hard_block && <span className="badge-pill badge-disqualified">{evaluation.block_reasons.join(", ")}</span>}
-                      {evaluation.review_required && <span className="badge-pill badge-warm">{evaluation.review_flags.join(", ")}</span>}
+                      {evaluation.review_required && describeReviewFlags(evaluation.review_flags).map((review) => (
+                        <span key={review} className="review-detail">Revisão {review}</span>
+                      ))}
                       <span className="badge-pill">{evaluation.next_action}</span>
                     </div>
                   </div>
