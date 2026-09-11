@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { api } from "@/lib/api";
 import { formatPhone } from "@/lib/phone";
 import { NewAppointmentModal } from "@/components/NewAppointmentModal";
+import { MeetingOutcomeForm } from "@/components/MeetingOutcomeForm";
 import Link from "next/link";
 import type { Appointment } from "@/types";
 
@@ -180,7 +181,8 @@ export default function AppointmentsPage() {
               {items.map((appt) => {
                 const name = appt.lead_name ?? (appt.lead_phone ? formatPhone(appt.lead_phone) : null) ?? "—";
                 return (
-                  <tr key={appt.id} className="row-hover">
+                  <Fragment key={appt.id}>
+                  <tr className="row-hover">
                     <td>
                       <Link href={`/leads/${appt.lead_id}`} className="flex items-center gap-3" style={{ textDecoration: "none" }}>
                         <div className="font-display font-semibold flex items-center justify-center flex-shrink-0" style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--ink)", color: "#FFFFFF", fontSize: 12 }}>
@@ -197,6 +199,10 @@ export default function AppointmentsPage() {
                     <td><StatusSelect appt={appt} /></td>
                     <td><ChannelBadge appt={appt} /></td>
                   </tr>
+                  {(appt.status === "completed" || appt.meeting_outcome) && (
+                    <tr><td colSpan={5} style={{ padding: "0 20px 16px" }}><MeetingOutcomeForm appointment={appt} /></td></tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>
@@ -227,6 +233,7 @@ export default function AppointmentsPage() {
                 <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>{formatWhen(appt.scheduled_at)}</p>
                 <p style={{ fontSize: 12, color: "var(--ink-3)", marginBottom: 10 }}>{TYPE_LABELS[appt.appointment_type ?? ""] ?? appt.appointment_type ?? "—"}</p>
                 <ChannelBadge appt={appt} />
+                <MeetingOutcomeForm appointment={appt} />
               </div>
             );
           })}

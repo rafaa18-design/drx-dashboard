@@ -28,6 +28,14 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
   });
   const leads = (leadsData?.items ?? []) as Lead[];
   const selectedLead = leads.find((l) => l.id === leadId);
+  const selectedLeadEligible = Boolean(
+    selectedLead
+    && (
+      selectedLead.meeting_readiness === "ready"
+      || (selectedLead.manual_override && selectedLead.manual_override_reason)
+      || selectedLead.commercial_status === "proposal"
+    )
+  );
 
   const { data: lawyers } = useQuery({ queryKey: ["lawyers"], queryFn: api.getLawyers });
 
@@ -54,10 +62,10 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
   });
 
   const canSubmit = useMemo(() => {
-    if (!leadId || !slot) return false;
+    if (!leadId || !selectedLeadEligible || !slot) return false;
     if (channel === "meet" && !clientEmail.trim()) return false;
     return true;
-  }, [leadId, slot, channel, clientEmail]);
+  }, [leadId, selectedLeadEligible, slot, channel, clientEmail]);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
@@ -95,7 +103,7 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
                     {leads.slice(0, 6).map((l) => (
                       <button
                         key={l.id}
-                        onClick={() => { setLeadId(l.id); setSearch(""); }}
+                        onClick={() => setLeadId(l.id)}
                         className="row-hover w-full text-left"
                         style={{ padding: "8px 12px", fontSize: 13, color: "var(--ink)", background: "var(--surface)", border: "none", cursor: "pointer", display: "block" }}
                       >
@@ -105,6 +113,11 @@ export function NewAppointmentModal({ onClose }: { onClose: () => void }) {
                   </div>
                 )}
               </>
+            )}
+            {selectedLead && !selectedLeadEligible && (
+              <p style={{ fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
+                Este lead ainda não está pronto para reunião. Conclua o preparo ou registre um override justificado.
+              </p>
             )}
           </div>
 

@@ -111,6 +111,13 @@ export const api = {
     request<Appointment>(`/api/appointments/${id}`, {
       method: "PATCH", body: JSON.stringify({ status }),
     }),
+  updateAppointmentOutcome: (
+    id: string,
+    body: Pick<Appointment, "meeting_quality" | "meeting_outcome" | "main_outcome_reason">,
+  ) => request<Appointment>(`/api/appointments/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  }),
 
   // Advogados / Google Calendar
   getLawyers: () => request<Lawyer[]>("/api/lawyers"),

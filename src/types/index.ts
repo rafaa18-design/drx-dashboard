@@ -1,5 +1,16 @@
 export type QualificationClass = "A" | "B" | "C" | "D" | "BLOQUEADO";
-export type QualificationAction = "meeting" | "qualify" | "nurture" | "close" | "blocked_review";
+export type QualificationAction = "meeting" | "prepare_meeting" | "qualify" | "nurture" | "close" | "blocked_review";
+export type MeetingReadiness = "ready" | "pending_preparation" | "not_eligible";
+export type ExpectationAligned = "confirmed" | "pending" | "incompatible";
+export type MeetingQuality = "high_awareness" | "partial" | "low_awareness";
+export type MeetingOutcome = "contracted" | "proposal_open" | "no_fit" | "no_priority" | "no_capacity_now" | "expectation_mismatch" | "other";
+export type MeetingReadinessChecklist = {
+  case_impact_understood?: boolean;
+  priority_confirmed?: boolean;
+  decision_maker_identified?: boolean;
+  expectation_aligned?: boolean;
+  minimum_evidence_available?: boolean;
+};
 
 export interface QualificationEvaluation {
   id: string;
@@ -14,6 +25,13 @@ export interface QualificationEvaluation {
   dimension_scores: Record<string, number>;
   block_reasons: string[];
   review_flags: string[];
+  meeting_readiness: MeetingReadiness;
+  expectation_aligned: ExpectationAligned;
+  notice_or_print_available: boolean;
+  timeline_available: boolean;
+  evidence_access_exception: boolean;
+  meeting_readiness_checklist: MeetingReadinessChecklist;
+  meeting_readiness_reasons: string[];
   evaluated_at: string;
 }
 
@@ -42,6 +60,13 @@ export interface Lead {
   hard_block_reasons: string[] | null;
   review_required: boolean;
   review_flags: string[] | null;
+  meeting_readiness: MeetingReadiness;
+  expectation_aligned: ExpectationAligned;
+  notice_or_print_available: boolean;
+  timeline_available: boolean;
+  evidence_access_exception: boolean;
+  meeting_readiness_checklist: MeetingReadinessChecklist | null;
+  meeting_readiness_reasons: string[] | null;
   followers_count: number | null;
   verified_badge: boolean | null;
   account_type: "personal" | "professional" | "store" | "influencer" | "company" | null;
@@ -123,6 +148,11 @@ export interface Appointment {
   status: "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
   appointment_type: string | null;
   notes: string | null;
+  meeting_quality: MeetingQuality | null;
+  meeting_outcome: MeetingOutcome | null;
+  main_outcome_reason: string | null;
+  outcome_recorded_by: string | null;
+  outcome_recorded_at: string | null;
   created_at: string;
 }
 

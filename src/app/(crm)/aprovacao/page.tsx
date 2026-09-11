@@ -127,6 +127,12 @@ function ApprovalCard({ lead }: { lead: Lead }) {
   const caseType = clean(lead.case_type);
   const caseDescription = clean(lead.case_description);
   const sc = scoreColor(lead.qualification_level);
+  const completedReadiness = Object.values(lead.meeting_readiness_checklist ?? {}).filter(Boolean).length;
+  const readinessLabel = lead.meeting_readiness === "ready"
+    ? "PRONTO PARA REUNIÃO · 5/5"
+    : lead.meeting_readiness === "pending_preparation"
+      ? `PREPARO PENDENTE · ${completedReadiness}/5`
+      : "NÃO ELEGÍVEL";
 
   return (
     <div className="drx-fadeup dc-card p-5 sm:p-6" style={{ borderLeft: `3px solid ${sc}`, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -171,7 +177,14 @@ function ApprovalCard({ lead }: { lead: Lead }) {
           <span key={review} className="review-detail">Revisão {review}</span>
         ))}
         {lead.qualification_version && <span className="badge-pill">{lead.qualification_version}</span>}
+        <span className="badge-pill">{readinessLabel}</span>
       </div>
+
+      {(lead.meeting_readiness_reasons ?? []).length > 0 && (
+        <p style={{ fontSize: 12, color: "var(--ink-3)" }}>
+          Pendências: {(lead.meeting_readiness_reasons ?? []).join(" ")}
+        </p>
+      )}
 
       {result && (
         <div

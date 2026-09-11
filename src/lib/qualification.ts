@@ -16,3 +16,20 @@ export function describeReviewFlags(flags: string[] | null | undefined): string[
     return description ? `${code}: ${description}` : `${flag}: requer análise humana`;
   });
 }
+
+export const READINESS_CHECKLIST_LABELS = {
+  case_impact_understood: "Caso e impacto compreendidos",
+  priority_confirmed: "Prioridade confirmada",
+  decision_maker_identified: "Decisor identificado",
+  expectation_aligned: "Expectativa alinhada: sem garantia de resultado ou prazo",
+  minimum_evidence_available: "Aviso/print, cronologia e evidências mínimas disponíveis",
+} as const;
+
+export const ACTION_LABELS: Record<string, string> = {
+  meeting: "Agendar reunião",
+  prepare_meeting: "Preparar para reunião",
+  qualify: "Continuar qualificação",
+  nurture: "Manter em nutrição",
+  close: "Encerrar",
+  blocked_review: "Aguardar revisão humana",
+};

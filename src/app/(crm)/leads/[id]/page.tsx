@@ -5,9 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { describeReviewFlags } from "@/lib/qualification";
+import { ACTION_LABELS, describeReviewFlags, READINESS_CHECKLIST_LABELS } from "@/lib/qualification";
 import { formatPhone } from "@/lib/phone";
 import type { Appointment, Conversation, Lead, QualificationEvaluation } from "@/types";
+import { MeetingOutcomeForm } from "@/components/MeetingOutcomeForm";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Novo", contacted: "Contactado", qualified: "Qualificado", pending_approval: "Aguardando aprovação", proposal: "Proposta",
@@ -188,6 +189,17 @@ function FactRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+function ReadinessBadge({ lead }: { lead: Pick<Lead, "meeting_readiness" | "meeting_readiness_checklist"> }) {
+  const completed = Object.values(lead.meeting_readiness_checklist ?? {}).filter(Boolean).length;
+  const config = {
+    ready: { label: "PRONTO PARA REUNIÃO · 5/5", color: "var(--ok)", bg: "rgba(15,122,92,0.10)" },
+    pending_preparation: { label: `PREPARO PENDENTE · ${completed}/5`, color: "var(--warn)", bg: "rgba(180,83,9,0.10)" },
+    not_eligible: { label: "NÃO ELEGÍVEL", color: "var(--danger)", bg: "rgba(179,38,30,0.08)" },
+  }[lead.meeting_readiness];
+
+  return <span className="badge-pill" style={{ color: config.color, background: config.bg }}>{config.label}</span>;
+}
+
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -253,6 +265,7 @@ export default function LeadDetailPage() {
   const qualificationDetails = lead.qualification_signals as { field_points?: Record<string, number> } | null;
   const fieldPoints = qualificationDetails?.field_points ?? {};
   const dimensions = lead.qualification_dimensions ?? {};
+  const readinessChecklist = lead.meeting_readiness_checklist ?? {};
 
   const appts = (apptData?.items ?? []).filter((a) => a.lead_id === id);
   const convs = (convData?.items ?? []).filter((c) => c.lead_id === id);
@@ -302,7 +315,10 @@ export default function LeadDetailPage() {
           {/* Qualificação */}
           <div className="drx-fadeup dc-card" style={{ animationDelay: "60ms" }}>
             <SectionHeader title="Qualificação" side={
-              lead.qualification_level ? <span className={`badge-pill ${LEVEL_BADGE[lead.qualification_level] ?? ""}`}>{LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level}</span> : null
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                {lead.qualification_level && <span className={`badge-pill ${LEVEL_BADGE[lead.qualification_level] ?? ""}`}>{LEVEL_LABELS[lead.qualification_level] ?? lead.qualification_level}</span>}
+                <ReadinessBadge lead={lead} />
+              </div>
             } />
             <div className="dc-card-pad">
               <div className="flex items-baseline gap-3 mb-3">
@@ -354,6 +370,31 @@ export default function LeadDetailPage() {
               <p style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 12 }}>
                 Seguidores e selo verificado são segmentação e não alteram o score.
               </p>
+
+              <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--line-soft)" }}>
+                <div className="flex items-center justify-between gap-3 flex-wrap" style={{ marginBottom: 12 }}>
+                  <h3 className="font-display font-semibold" style={{ fontSize: 15, color: "var(--ink)" }}>Prontidão para reunião</h3>
+                  <ReadinessBadge lead={lead} />
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(READINESS_CHECKLIST_LABELS).map(([key, label]) => {
+                    const complete = Boolean(readinessChecklist[key as keyof typeof readinessChecklist]);
+                    return (
+                      <div key={key} className="flex items-start gap-2" style={{ fontSize: 13, color: complete ? "var(--ink-2)" : "var(--ink-3)" }}>
+                        <span aria-hidden="true" style={{ color: complete ? "var(--ok)" : "var(--danger)", fontWeight: 800 }}>{complete ? "✓" : "×"}</span>
+                        <span>{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {(lead.meeting_readiness_reasons ?? []).length > 0 && (
+                  <div style={{ marginTop: 14, padding: 12, borderRadius: "var(--r-md)", background: "rgba(180,83,9,0.08)", border: "1px solid rgba(180,83,9,0.18)" }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", marginBottom: 5 }}>PRÓXIMA AÇÃO DO SDR</p>
+                    <p style={{ fontSize: 13, color: "var(--ink-2)" }}>{lead.meeting_readiness_reasons?.[0]}</p>
+                    {(lead.meeting_readiness_reasons ?? []).slice(1).map((reason) => <p key={reason} style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}>{reason}</p>)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -371,12 +412,13 @@ export default function LeadDetailPage() {
                         {evaluation.score_version} · {formatDateTime(evaluation.evaluated_at)}
                       </p>
                     </div>
-                    <div className="flex gap-2 flex-wrap justify-end">
+                      <div className="flex gap-2 flex-wrap justify-end">
                       {evaluation.hard_block && <span className="badge-pill badge-disqualified">{evaluation.block_reasons.join(", ")}</span>}
                       {evaluation.review_required && describeReviewFlags(evaluation.review_flags).map((review) => (
                         <span key={review} className="review-detail">Revisão {review}</span>
                       ))}
-                      <span className="badge-pill">{evaluation.next_action}</span>
+                      <span className="badge-pill">{ACTION_LABELS[evaluation.next_action] ?? evaluation.next_action}</span>
+                      <ReadinessBadge lead={evaluation} />
                     </div>
                   </div>
                 ))}
@@ -405,19 +447,22 @@ export default function LeadDetailPage() {
                   const cs = APPT_STATUS_COLOR[a.status] ?? APPT_STATUS_COLOR.scheduled;
                   const date = new Date(a.scheduled_at);
                   return (
-                    <div key={a.id} className="row-hover flex items-center gap-4 px-4 sm:px-6 py-4" style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-soft)" }}>
-                      <div className="text-center flex-shrink-0" style={{ width: 46, padding: "6px 4px", borderRadius: "var(--r-md)", background: "var(--accent-soft)" }}>
-                        <p className="font-display font-semibold" style={{ fontSize: 16, lineHeight: 1, color: "var(--accent)" }}>{date.getDate().toString().padStart(2, "0")}</p>
-                        <p style={{ fontSize: 10, marginTop: 2, color: "var(--ink-3)" }}>{date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}</p>
+                    <div key={a.id} className="row-hover px-4 sm:px-6 py-4" style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-soft)" }}>
+                      <div className="flex items-center gap-4">
+                        <div className="text-center flex-shrink-0" style={{ width: 46, padding: "6px 4px", borderRadius: "var(--r-md)", background: "var(--accent-soft)" }}>
+                          <p className="font-display font-semibold" style={{ fontSize: 16, lineHeight: 1, color: "var(--accent)" }}>{date.getDate().toString().padStart(2, "0")}</p>
+                          <p style={{ fontSize: 10, marginTop: 2, color: "var(--ink-3)" }}>{date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}</p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{date.toLocaleString("pt-BR", { weekday: "short", hour: "2-digit", minute: "2-digit" })} · {a.duration_minutes} min</p>
+                          {a.notes && <p style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 2 }}>{a.notes}</p>}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {a.google_meet_link && <a href={a.google_meet_link} target="_blank" rel="noreferrer" className="btn-meet hidden sm:inline-block">Meet</a>}
+                          <span className="badge-pill" style={{ color: cs.text, background: cs.bg }}>{APPT_STATUS_LABEL[a.status] ?? a.status}</span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p style={{ fontSize: 12, color: "var(--ink-3)" }}>{date.toLocaleString("pt-BR", { weekday: "short", hour: "2-digit", minute: "2-digit" })} · {a.duration_minutes} min</p>
-                        {a.notes && <p style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 2 }}>{a.notes}</p>}
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {a.google_meet_link && <a href={a.google_meet_link} target="_blank" rel="noreferrer" className="btn-meet hidden sm:inline-block">Meet</a>}
-                        <span className="badge-pill" style={{ color: cs.text, background: cs.bg }}>{APPT_STATUS_LABEL[a.status] ?? a.status}</span>
-                      </div>
+                      <MeetingOutcomeForm appointment={a} />
                     </div>
                   );
                 })}
@@ -457,7 +502,7 @@ export default function LeadDetailPage() {
             <FactRow label="Origem" value={source ? (SOURCE_LABELS[source] ?? source) : "—"} />
             <FactRow label="Área do caso" value={caseType ? (CASE_LABELS[caseType] ?? caseType) : "—"} />
             <FactRow label="E-mail" value={email ?? "—"} />
-            <FactRow label="Próxima ação" value={lead.qualification_next_action ?? "—"} />
+            <FactRow label="Próxima ação" value={lead.qualification_next_action ? (ACTION_LABELS[lead.qualification_next_action] ?? lead.qualification_next_action) : "—"} />
             <FactRow label="Tipo de conta" value={lead.account_type ?? "—"} />
             <FactRow label="Monetização" value={(lead.monetization_type ?? []).join(", ") || "—"} />
             <FactRow label="Seguidores" value={lead.followers_count?.toLocaleString("pt-BR") ?? "—"} />
